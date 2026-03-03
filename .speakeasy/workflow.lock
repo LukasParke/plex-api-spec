@@ -1,4 +1,4 @@
-speakeasyVersion: 1.739.0
+speakeasyVersion: 1.739.1
 sources:
     Plex-API:
         sourceNamespace: plex-api
