@@ -14748,8 +14748,11 @@ components:
           type: boolean
           example: false
         hasVoiceActivity:
-          type: boolean
-          example: true
+          allOf:
+            - $ref: '#/components/schemas/BoolInt'
+          description: |
+            Voice activity detection availability flag returned by PMS.
+            PMS returns this as string values (`"0"` or `"1"`) instead of a JSON boolean.
         height:
           type: integer
           format: int32
