@@ -14748,8 +14748,11 @@ components:
           type: boolean
           example: false
         hasVoiceActivity:
-          allOf:
-            - $ref: '#/components/schemas/BoolInt'
+          type: string
+          enum:
+            - '0'
+            - '1'
+          example: '0'
           description: |
             Voice activity detection availability flag returned by PMS.
             PMS returns this as string values (`"0"` or `"1"`) instead of a JSON boolean.
