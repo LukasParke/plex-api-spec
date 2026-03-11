@@ -15441,10 +15441,20 @@ components:
           type: boolean
         skipChildren:
           description: When found on a show item, indicates that the children (seasons) should be skipped in favor of the grandchildren (episodes). Useful for mini-series, etc.
-          type: boolean
+          oneOf:
+            - type: boolean
+            - type: string
+              enum:
+                - '0'
+                - '1'
         skipParent:
           description: When present on an episode or track item, indicates parent should be skipped in favor of grandparent (show).
-          type: boolean
+          oneOf:
+            - type: boolean
+            - type: string
+              enum:
+                - '0'
+                - '1'
         Sort:
           description: Typically only seen in metadata at a library's top level
           type: array
