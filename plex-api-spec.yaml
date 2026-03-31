@@ -7691,7 +7691,10 @@ paths:
                             - Special: There is a By Folder entry which allows browsing the media by the underlying filesystem structure, and there's a completely obsolete entry marked `"search": true` which used to be used to allow clients to build search dialogs on the fly.
                         type: string
                       allowSync:
-                        type: boolean
+                        oneOf:
+                          - type: boolean
+                          - type: string
+                            enum: ["0", "1"]
                       art:
                         type: string
                       Directory:
@@ -14286,7 +14289,10 @@ components:
                         - Special: There is a By Folder entry which allows browsing the media by the underlying filesystem structure, and there's a completely obsolete entry marked `"search": true` which used to be used to allow clients to build search dialogs on the fly.
                     type: string
                   allowSync:
-                    type: boolean
+                    oneOf:
+                      - type: boolean
+                      - type: string
+                        enum: ["0", "1"]
                   art:
                     type: string
                   Directory:
@@ -14322,7 +14328,10 @@ components:
             $ref: '#/components/schemas/MediaContainerWithPlaylistMetadata'
   schemas:
     AllowSync:
-      type: boolean
+      oneOf:
+        - type: boolean
+        - type: string
+          enum: ["0", "1"]
     BoolInt:
       type: integer
       format: int32
@@ -14631,7 +14640,10 @@ components:
         agent:
           type: string
         allowSync:
-          type: boolean
+          oneOf:
+            - type: boolean
+            - type: string
+              enum: ["0", "1"]
         art:
           type: string
         composite:
@@ -16023,9 +16035,12 @@ components:
           description: Bitrate of the stream.
           example: 24743
         canAutoSync:
-          type: boolean
           description: Indicates if the stream can auto-sync.
           example: false
+          oneOf:
+            - type: boolean
+            - type: string
+              enum: ["0", "1"]
         chromaLocation:
           type: string
           description: Chroma sample location.
