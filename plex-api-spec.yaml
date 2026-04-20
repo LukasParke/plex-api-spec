@@ -594,19 +594,9 @@ paths:
                             description: A list of media times and bandwidths when trascoding is using with auto adjustment of bandwidth
                             properties:
                               Bandwidth:
-                                items:
-                                  properties:
-                                    bandwidth:
-                                      description: The bandwidth at this time in kbps
-                                      type: integer
-                                    resolution:
-                                      description: The user-friendly resolution at this time
-                                      type: string
-                                    time:
-                                      description: Media playback time where this bandwidth started
-                                      type: integer
-                                  type: object
                                 type: array
+                                items:
+                                  $ref: '#/components/schemas/Bandwidth'
                             type: object
                           terminationCode:
                             description: A code describing why the session was terminated by the server.
@@ -726,41 +716,9 @@ paths:
                     allOf:
                       - properties:
                           Activity:
-                            items:
-                              properties:
-                                cancellable:
-                                  description: Indicates whether this activity can be cancelled
-                                  type: boolean
-                                Context:
-                                  description: An object with additional values
-                                  additionalProperties: true
-                                  type: object
-                                progress:
-                                  description: A progress percentage.  A value of -1 means the progress is indeterminate
-                                  maximum: 100
-                                  minimum: -1
-                                  type: number
-                                Response:
-                                  description: An object with the response to the async opperation
-                                  additionalProperties: true
-                                  type: object
-                                subtitle:
-                                  description: A user-friendly sub-title for this activity
-                                  type: string
-                                title:
-                                  description: A user-friendly title for this activity
-                                  type: string
-                                type:
-                                  description: The type of activity
-                                  type: string
-                                userID:
-                                  description: The user this activity belongs to
-                                  type: integer
-                                uuid:
-                                  description: The ID of the activity
-                                  type: string
-                              type: object
                             type: array
+                            items:
+                              $ref: '#/components/schemas/Activity'
                         type: object
                 type: object
   /butler:
@@ -796,28 +754,9 @@ paths:
                   ButlerTasks:
                     properties:
                       ButlerTask:
-                        items:
-                          properties:
-                            description:
-                              description: A user-friendly description of the task
-                              type: string
-                            enabled:
-                              description: Whether this task is enabled or not
-                              type: boolean
-                            interval:
-                              description: The interval (in days) of when this task is run.  A value of 1 is run every day, 7 is every week, etc.
-                              type: integer
-                            name:
-                              description: The name of the task
-                              type: string
-                            scheduleRandomized:
-                              description: Indicates whether the timing of the task is randomized within the butler interval
-                              type: boolean
-                            title:
-                              description: A user-friendly title of the task
-                              type: string
-                          type: object
                         type: array
+                        items:
+                          $ref: '#/components/schemas/ButlerTask'
                     type: object
                 type: object
     post:
@@ -860,29 +799,9 @@ paths:
                       - $ref: '#/components/schemas/MediaContainer'
                       - properties:
                           DownloadQueue:
-                            items:
-                              properties:
-                                id:
-                                  type: integer
-                                itemCount:
-                                  type: integer
-                                status:
-                                  description: |
-                                    The state of this queue
-                                      - deciding: At least one item is still being decided
-                                      - waiting: At least one item is waiting for transcode and none are currently transcoding
-                                      - processing: At least one item is being transcoded
-                                      - done: All items are available (or potentially expired)
-                                      - error: At least one item has encountered an error
-                                  enum:
-                                    - deciding
-                                    - waiting
-                                    - processing
-                                    - done
-                                    - error
-                                  type: string
-                              type: object
                             type: array
+                            items:
+                              $ref: '#/components/schemas/DownloadQueue'
                         type: object
   /hubs:
     get:
@@ -927,17 +846,7 @@ paths:
           content:
             application/json:
               schema:
-                properties:
-                  MediaContainer:
-                    allOf:
-                      - $ref: '#/components/schemas/MediaContainer'
-                      - properties:
-                          Hub:
-                            items:
-                              $ref: '#/components/schemas/Hub'
-                            type: array
-                        type: object
-                type: object
+                $ref: '#/components/schemas/MediaContainerWithHubs'
   /hubs/continueWatching:
     get:
       summary: Get the continue watching hub
@@ -969,17 +878,7 @@ paths:
           content:
             application/json:
               schema:
-                properties:
-                  MediaContainer:
-                    allOf:
-                      - $ref: '#/components/schemas/MediaContainer'
-                      - properties:
-                          Hub:
-                            items:
-                              $ref: '#/components/schemas/Hub'
-                            type: array
-                        type: object
-                type: object
+                $ref: '#/components/schemas/MediaContainerWithHubs'
   /hubs/items:
     get:
       summary: Get a hub's items
@@ -1058,17 +957,7 @@ paths:
           content:
             application/json:
               schema:
-                properties:
-                  MediaContainer:
-                    allOf:
-                      - $ref: '#/components/schemas/MediaContainer'
-                      - properties:
-                          Hub:
-                            items:
-                              $ref: '#/components/schemas/Hub'
-                            type: array
-                        type: object
-                type: object
+                $ref: '#/components/schemas/MediaContainerWithHubs'
   /hubs/search:
     get:
       summary: Search Hub
@@ -1130,17 +1019,7 @@ paths:
           content:
             application/json:
               schema:
-                properties:
-                  MediaContainer:
-                    allOf:
-                      - $ref: '#/components/schemas/MediaContainer'
-                      - properties:
-                          Hub:
-                            items:
-                              $ref: '#/components/schemas/Hub'
-                            type: array
-                        type: object
-                type: object
+                $ref: '#/components/schemas/MediaContainerWithHubs'
         '400':
           description: A required parameter was not given, the wrong type, or wrong value
           content:
@@ -1196,17 +1075,7 @@ paths:
           content:
             application/json:
               schema:
-                properties:
-                  MediaContainer:
-                    allOf:
-                      - $ref: '#/components/schemas/MediaContainer'
-                      - properties:
-                          Hub:
-                            items:
-                              $ref: '#/components/schemas/Hub'
-                            type: array
-                        type: object
-                type: object
+                $ref: '#/components/schemas/MediaContainerWithHubs'
         '400':
           description: A required parameter was not given, the wrong type, or wrong value
           content:
@@ -1879,22 +1748,9 @@ paths:
                       - $ref: '#/components/schemas/MediaContainerWithStatus'
                       - properties:
                           DVR:
-                            items:
-                              properties:
-                                Device:
-                                  items:
-                                    $ref: '#/components/schemas/Device'
-                                  type: array
-                                key:
-                                  type: string
-                                language:
-                                  type: string
-                                lineup:
-                                  type: string
-                                uuid:
-                                  type: string
-                              type: object
                             type: array
+                            items:
+                              $ref: '#/components/schemas/DVR'
                         type: object
                 type: object
     post:
@@ -2100,37 +1956,9 @@ paths:
                       - $ref: '#/components/schemas/MediaContainer'
                       - properties:
                           Country:
-                            items:
-                              properties:
-                                code:
-                                  description: Three letter code
-                                  type: string
-                                example:
-                                  type: string
-                                flavor:
-                                  description: |
-                                    - `0`: The country is divided into regions, and following the key will lead to a list of regions.
-                                    - `1`: The county is divided by postal codes, and an example code is returned in `example`.
-                                    - `2`: The country has a single postal code, returned in `example`.
-                                  enum:
-                                    - 0
-                                    - 1
-                                    - 2
-                                  type: integer
-                                key:
-                                  type: string
-                                language:
-                                  description: Three letter language code
-                                  type: string
-                                languageTitle:
-                                  description: The title of the language
-                                  type: string
-                                title:
-                                  type: string
-                                type:
-                                  type: string
-                              type: object
                             type: array
+                            items:
+                              $ref: '#/components/schemas/EPGCountry'
                         type: object
                 type: object
   /livetv/epg/languages:
@@ -2161,15 +1989,9 @@ paths:
                       - $ref: '#/components/schemas/MediaContainer'
                       - properties:
                           Language:
-                            items:
-                              properties:
-                                code:
-                                  description: 3 letter language code
-                                  type: string
-                                title:
-                                  type: string
-                              type: object
                             type: array
+                            items:
+                              $ref: '#/components/schemas/EPGLanguage'
                         type: object
                 type: object
   /livetv/epg/lineup:
@@ -2455,16 +2277,9 @@ paths:
                       - $ref: '#/components/schemas/MediaContainer'
                       - properties:
                           MediaGrabber:
-                            items:
-                              properties:
-                                identifier:
-                                  type: string
-                                protocol:
-                                  type: string
-                                title:
-                                  type: string
-                              type: object
                             type: array
+                            items:
+                              $ref: '#/components/schemas/MediaGrabber'
                         type: object
                 type: object
   /media/grabbers/devices:
@@ -2565,18 +2380,9 @@ paths:
                       - $ref: '#/components/schemas/ServerConfiguration'
                       - properties:
                           Feature:
-                            items:
-                              properties:
-                                Directory:
-                                  items:
-                                    $ref: '#/components/schemas/Directory'
-                                  type: array
-                                key:
-                                  type: string
-                                type:
-                                  type: string
-                              type: object
                             type: array
+                            items:
+                              $ref: '#/components/schemas/Feature'
                           identifier:
                             description: A unique identifier for the provider, e.g. `com.plexapp.plugins.library`.
                             type: string
@@ -2823,17 +2629,7 @@ paths:
           content:
             application/json:
               schema:
-                properties:
-                  MediaContainer:
-                    allOf:
-                      - $ref: '#/components/schemas/MediaContainer'
-                      - properties:
-                          MediaGrabOperation:
-                            items:
-                              $ref: '#/components/schemas/MediaGrabOperation'
-                            type: array
-                        type: object
-                type: object
+                $ref: '#/components/schemas/MediaContainerWithMediaGrabOperation'
         '403':
           description: User cannot access DVR on this server
           content:
@@ -3288,35 +3084,7 @@ paths:
                   MediaContainer:
                     allOf:
                       - $ref: '#/components/schemas/MediaContainer'
-                      - properties:
-                          playQueueID:
-                            description: The ID of the play queue, which is used in subsequent requests.
-                            type: integer
-                          playQueueLastAddedItemID:
-                            description: Defines where the "Up Next" region starts
-                            type: string
-                          playQueueSelectedItemID:
-                            description: The queue item ID of the currently selected  item.
-                            type: integer
-                          playQueueSelectedItemOffset:
-                            description: The offset of the selected item in the play queue, from the beginning of the queue.
-                            type: integer
-                          playQueueSelectedMetadataItemID:
-                            description: The metadata item ID of the currently selected item (matches `ratingKey` attribute in metadata item if the media provider is a library).
-                            type: integer
-                          playQueueShuffled:
-                            description: Whether or not the queue is shuffled.
-                            type: boolean
-                          playQueueSourceURI:
-                            description: The original URI used to create the play queue.
-                            type: string
-                          playQueueTotalCount:
-                            description: The total number of items in the play queue.
-                            type: integer
-                          playQueueVersion:
-                            description: The version of the play queue. It increments every time a change is made to the play queue to assist clients in knowing when to refresh.
-                            type: integer
-                        type: object
+                      - $ref: '#/components/schemas/PlayQueueResponse'
                 type: object
         '400':
           $ref: '#/components/responses/400'
@@ -3360,36 +3128,7 @@ paths:
                   MediaContainer:
                     allOf:
                       - $ref: '#/components/schemas/MediaContainer'
-                      - properties:
-                          Device:
-                            properties:
-                              accessToken:
-                                type: string
-                              clientIdentifier:
-                                type: string
-                              Connection:
-                                items:
-                                  properties:
-                                    address:
-                                      type: string
-                                    local:
-                                      description: Indicates if the connection is the server's LAN address
-                                      type: boolean
-                                    port:
-                                      type: integer
-                                    protocol:
-                                      type: string
-                                    relay:
-                                      description: Indicates the connection is over a relayed connection
-                                      type: boolean
-                                    uri:
-                                      type: string
-                                  type: object
-                                type: array
-                              name:
-                                type: string
-                            type: object
-                        type: object
+                      - $ref: '#/components/schemas/ConnectionInfoWrapper'
                 type: object
         '400':
           description: A query param is missing or the wrong value
@@ -3497,22 +3236,9 @@ paths:
                       - $ref: '#/components/schemas/MediaContainer'
                       - properties:
                           UltraBlurColors:
-                            items:
-                              properties:
-                                bottomLeft:
-                                  description: The color (hex) for the bottom left quadrant.
-                                  type: string
-                                bottomRight:
-                                  description: The color (hex) for the bottom right quadrant.
-                                  type: string
-                                topLeft:
-                                  description: The color (hex) for the top left quadrant.
-                                  type: string
-                                topRight:
-                                  description: The color (hex) for the top right quadrant.
-                                  type: string
-                              type: object
                             type: array
+                            items:
+                              $ref: '#/components/schemas/UltraBlurColors'
                         type: object
                 type: object
         '404':
@@ -3667,40 +3393,9 @@ paths:
                       - $ref: '#/components/schemas/MediaContainer'
                       - properties:
                           TranscodeJob:
-                            items:
-                              properties:
-                                generatorID:
-                                  type: integer
-                                key:
-                                  type: string
-                                progress:
-                                  maximum: 100
-                                  minimum: 0
-                                  type: number
-                                ratingKey:
-                                  type: string
-                                remaining:
-                                  description: The number of seconds remaining in this job
-                                  type: integer
-                                size:
-                                  description: The size of the result so far
-                                  type: integer
-                                speed:
-                                  description: The speed of the transcode; 1.0 means real-time
-                                  type: number
-                                targetTagID:
-                                  description: The tag associated with the job.  This could be the tag containing the optimizer settings.
-                                  type: integer
-                                thumb:
-                                  type: string
-                                title:
-                                  type: string
-                                type:
-                                  enum:
-                                    - transcode
-                                  type: string
-                              type: object
                             type: array
+                            items:
+                              $ref: '#/components/schemas/TranscodeJob'
                         type: object
                 type: object
   /status/sessions/history/all:
@@ -3773,43 +3468,9 @@ paths:
                       - $ref: '#/components/schemas/MediaContainer'
                       - properties:
                           Metadata:
-                            items:
-                              properties:
-                                accountID:
-                                  description: The account id of this playback
-                                  type: integer
-                                deviceID:
-                                  description: The device id which played the item
-                                  type: integer
-                                historyKey:
-                                  description: The key for this individual history item
-                                  type: string
-                                key:
-                                  description: The metadata key for the item played
-                                  type: string
-                                librarySectionID:
-                                  description: The library section id containing the item played
-                                  type: string
-                                originallyAvailableAt:
-                                  description: The originally available at of the item played
-                                  type: string
-                                ratingKey:
-                                  description: The rating key for the item played
-                                  type: string
-                                thumb:
-                                  description: The thumb of the item played
-                                  type: string
-                                title:
-                                  description: The title of the item played
-                                  type: string
-                                type:
-                                  description: The metadata type of the item played
-                                  type: string
-                                viewedAt:
-                                  description: The time when the item was played
-                                  type: integer
-                              type: object
                             type: array
+                            items:
+                              $ref: '#/components/schemas/PlaybackHistoryMetadata'
                         type: object
                 type: object
   /status/sessions/terminate:
@@ -3970,49 +3631,9 @@ paths:
                             description: The URL where the update is available
                             type: string
                           Release:
-                            items:
-                              properties:
-                                added:
-                                  description: A list of what has been added in this version
-                                  type: string
-                                downloadURL:
-                                  description: The URL of where this update is available
-                                  type: string
-                                fixed:
-                                  description: A list of what has been fixed in this version
-                                  type: string
-                                key:
-                                  description: The URL key of the update
-                                  type: string
-                                state:
-                                  description: |
-                                    The status of this update.
-
-                                    - available - This release is available
-                                    - downloading - This release is downloading
-                                    - downloaded - This release has been downloaded
-                                    - installing - This release is installing
-                                    - tonight - This release will be installed tonight
-                                    - skipped - This release has been skipped
-                                    - error - This release has an error
-                                    - notify - This release is only notifying it is available (typically because it cannot be installed on this setup)
-                                    - done - This release is complete
-                                  enum:
-                                    - available
-                                    - downloading
-                                    - downloaded
-                                    - installing
-                                    - tonight
-                                    - skipped
-                                    - error
-                                    - notify
-                                    - done
-                                  type: string
-                                version:
-                                  description: The version available
-                                  type: string
-                              type: object
                             type: array
+                            items:
+                              $ref: '#/components/schemas/Release'
                           status:
                             description: The current error code (`0` means no error)
                             type: integer
@@ -5501,29 +5122,9 @@ paths:
                       - $ref: '#/components/schemas/MediaContainer'
                       - properties:
                           DownloadQueue:
-                            items:
-                              properties:
-                                id:
-                                  type: integer
-                                itemCount:
-                                  type: integer
-                                status:
-                                  description: |
-                                    The state of this queue
-                                      - deciding: At least one item is still being decided
-                                      - waiting: At least one item is waiting for transcode and none are currently transcoding
-                                      - processing: At least one item is being transcoded
-                                      - done: All items are available (or potentially expired)
-                                      - error: At least one item has encountered an error
-                                  enum:
-                                    - deciding
-                                    - waiting
-                                    - processing
-                                    - done
-                                    - error
-                                  type: string
-                              type: object
                             type: array
+                            items:
+                              $ref: '#/components/schemas/DownloadQueue'
                         type: object
   /downloadQueue/{queueId}/add:
     post:
@@ -5603,16 +5204,9 @@ paths:
                       - $ref: '#/components/schemas/MediaContainer'
                       - properties:
                           AddedQueueItems:
-                            items:
-                              properties:
-                                id:
-                                  description: The queue item id that was added or the existing one if an item already exists in this queue with the same parameters
-                                  type: integer
-                                key:
-                                  description: The key added to the queue
-                                  type: string
-                              type: object
                             type: array
+                            items:
+                              $ref: '#/components/schemas/AddedQueueItem'
                         type: object
   /downloadQueue/{queueId}/items:
     get:
@@ -5654,65 +5248,9 @@ paths:
                       - $ref: '#/components/schemas/MediaContainer'
                       - properties:
                           DownloadQueueItem:
-                            items:
-                              properties:
-                                DecisionResult:
-                                  properties:
-                                    availableBandwidth:
-                                      description: The maximum bitrate set when item was added
-                                      type: integer
-                                    directPlayDecisionCode:
-                                      type: integer
-                                    directPlayDecisionText:
-                                      type: string
-                                    generalDecisionCode:
-                                      type: integer
-                                    generalDecisionText:
-                                      type: string
-                                    mdeDecisionCode:
-                                      description: The code indicating the status of evaluation of playback when client indicates `hasMDE=1`
-                                      type: integer
-                                    mdeDecisionText:
-                                      description: Descriptive text for the above code
-                                      type: string
-                                    transcodeDecisionCode:
-                                      type: integer
-                                    transcodeDecisionText:
-                                      type: string
-                                  type: object
-                                error:
-                                  description: The error encountered in transcoding or decision
-                                  type: string
-                                id:
-                                  type: integer
-                                key:
-                                  type: string
-                                queueId:
-                                  type: integer
-                                status:
-                                  description: |
-                                    The state of the item:
-                                      - deciding: The item decision is pending
-                                      - waiting: The item is waiting for transcode
-                                      - processing: The item is being transcoded
-                                      - available: The item is available for download
-                                      - error: The item encountered an error in the decision or transcode
-                                      - expired: The transcoded item has timed out and is no longer available
-                                  enum:
-                                    - deciding
-                                    - waiting
-                                    - processing
-                                    - available
-                                    - error
-                                    - expired
-                                  type: string
-                                transcode:
-                                  description: The transcode session object which is not yet documented otherwise it'd be a $ref here.
-                                  type: object
-                                TranscodeSession:
-                                  $ref: '#/components/schemas/TranscodeSession'
-                              type: object
                             type: array
+                            items:
+                              $ref: '#/components/schemas/DownloadQueueItem'
                         type: object
   /hubs/metadata/{metadataId}:
     get:
@@ -5874,17 +5412,7 @@ paths:
           content:
             application/json:
               schema:
-                properties:
-                  MediaContainer:
-                    allOf:
-                      - $ref: '#/components/schemas/MediaContainer'
-                      - properties:
-                          Hub:
-                            items:
-                              $ref: '#/components/schemas/Hub'
-                            type: array
-                        type: object
-                type: object
+                $ref: '#/components/schemas/MediaContainerWithHubs'
         '400':
           description: No section with that id or permission is denied
           content:
@@ -5979,51 +5507,9 @@ paths:
                       - $ref: '#/components/schemas/MediaContainer'
                       - properties:
                           Hub:
-                            items:
-                              properties:
-                                homeVisibility:
-                                  description: |
-                                    Whether this hub is visible on the home screen
-                                      - all: Visible to all users
-                                      - none: Visible to no users
-                                      - admin: Visible to only admin users
-                                      - shared: Visible to shared users
-                                  enum:
-                                    - all
-                                    - none
-                                    - admin
-                                    - shared
-                                  type: string
-                                identifier:
-                                  description: The identifier for this hub
-                                  type: string
-                                promotedToOwnHome:
-                                  description: Whether this hub is visible to admin user home
-                                  type: boolean
-                                promotedToRecommended:
-                                  description: Whether this hub is promoted to all for recommendations
-                                  type: boolean
-                                promotedToSharedHome:
-                                  description: Whether this hub is visible to shared user's home
-                                  type: boolean
-                                recommendationsVisibility:
-                                  description: |
-                                    The visibility of this hub in recommendations:
-                                      - all: Visible to all users
-                                      - none: Visible to no users
-                                      - admin: Visible to only admin users
-                                      - shared: Visible to shared users
-                                  enum:
-                                    - all
-                                    - none
-                                    - admin
-                                    - shared
-                                  type: string
-                                title:
-                                  description: The title of this hub
-                                  type: string
-                              type: object
                             type: array
+                            items:
+                              $ref: '#/components/schemas/ManagedHub'
                         type: object
                 type: object
         '403':
@@ -6827,27 +6313,7 @@ paths:
                   MediaContainer:
                     allOf:
                       - $ref: '#/components/schemas/MediaContainer'
-                      - additionalProperties: true
-                        properties:
-                          color:
-                            type: string
-                          endTimeOffset:
-                            type: integer
-                          id:
-                            type: integer
-                          startTimeOffset:
-                            type: integer
-                          title:
-                            type: string
-                          type:
-                            enum:
-                              - intro
-                              - commercial
-                              - bookmark
-                              - resume
-                              - credit
-                            type: string
-                        type: object
+                      - $ref: '#/components/schemas/Marker'
                 type: object
         '400':
           description: Request parameters are bad, such as an `endTimeOffset` prior to the `startTimeOffset`
@@ -7152,17 +6618,7 @@ paths:
           content:
             application/json:
               schema:
-                properties:
-                  MediaContainer:
-                    allOf:
-                      - $ref: '#/components/schemas/MediaContainer'
-                      - properties:
-                          Hub:
-                            items:
-                              $ref: '#/components/schemas/Hub'
-                            type: array
-                        type: object
-                type: object
+                $ref: '#/components/schemas/MediaContainerWithHubs'
   /library/metadata/{ids}/similar:
     get:
       summary: Get similar items
@@ -7391,14 +6847,9 @@ paths:
                       - $ref: '#/components/schemas/MediaContainer'
                       - properties:
                           Account:
-                            items:
-                              properties:
-                                globalViewCount:
-                                  type: integer
-                                id:
-                                  type: integer
-                              type: object
                             type: array
+                            items:
+                              $ref: '#/components/schemas/TopUserAccount'
                         type: object
                 type: object
   /library/metadata/{ids}/voiceActivity:
@@ -7562,17 +7013,7 @@ paths:
           content:
             application/json:
               schema:
-                properties:
-                  MediaContainer:
-                    allOf:
-                      - $ref: '#/components/schemas/MediaContainer'
-                      - properties:
-                          Directory:
-                            items:
-                              $ref: '#/components/schemas/Tag'
-                            type: array
-                        type: object
-                type: object
+                $ref: '#/components/schemas/MediaContainerWithTags'
         '404':
           $ref: '#/components/responses/404'
   /library/people/{personId}/media:
@@ -8585,17 +8026,7 @@ paths:
           content:
             application/json:
               schema:
-                properties:
-                  MediaContainer:
-                    allOf:
-                      - $ref: '#/components/schemas/MediaContainer'
-                      - properties:
-                          Directory:
-                            items:
-                              $ref: '#/components/schemas/Directory'
-                            type: array
-                        type: object
-                type: object
+                $ref: '#/components/schemas/MediaContainerWithDirectory'
   /library/sections/{sectionId}/firstCharacters:
     get:
       summary: Get list of first characters
@@ -9034,17 +8465,7 @@ paths:
           content:
             application/json:
               schema:
-                properties:
-                  MediaContainer:
-                    allOf:
-                      - $ref: '#/components/schemas/MediaContainer'
-                      - properties:
-                          Directory:
-                            items:
-                              $ref: '#/components/schemas/Sort'
-                            type: array
-                        type: object
-                type: object
+                $ref: '#/components/schemas/MediaContainerWithSorts'
   /library/streams/{streamId}/levels:
     get:
       summary: Get loudness about a stream in json
@@ -9087,13 +8508,9 @@ paths:
                       - $ref: '#/components/schemas/MediaContainer'
                       - properties:
                           Level:
-                            items:
-                              properties:
-                                v:
-                                  description: The level in db.
-                                  type: number
-                              type: object
                             type: array
+                            items:
+                              $ref: '#/components/schemas/Level'
                           totalSamples:
                             description: The total number of samples (as a string)
                             type: string
@@ -9224,22 +8641,9 @@ paths:
                       - $ref: '#/components/schemas/MediaContainerWithStatus'
                       - properties:
                           DVR:
-                            items:
-                              properties:
-                                Device:
-                                  items:
-                                    $ref: '#/components/schemas/Device'
-                                  type: array
-                                key:
-                                  type: string
-                                language:
-                                  type: string
-                                lineup:
-                                  type: string
-                                uuid:
-                                  type: string
-                              type: object
                             type: array
+                            items:
+                              $ref: '#/components/schemas/DVR'
                         type: object
                 type: object
   /livetv/dvrs/{dvrId}/lineups:
@@ -9297,22 +8701,9 @@ paths:
                       - $ref: '#/components/schemas/MediaContainerWithStatus'
                       - properties:
                           DVR:
-                            items:
-                              properties:
-                                Device:
-                                  items:
-                                    $ref: '#/components/schemas/Device'
-                                  type: array
-                                key:
-                                  type: string
-                                language:
-                                  type: string
-                                lineup:
-                                  type: string
-                                uuid:
-                                  type: string
-                              type: object
                             type: array
+                            items:
+                              $ref: '#/components/schemas/DVR'
                         type: object
                 type: object
     put:
@@ -9369,22 +8760,9 @@ paths:
                       - $ref: '#/components/schemas/MediaContainerWithStatus'
                       - properties:
                           DVR:
-                            items:
-                              properties:
-                                Device:
-                                  items:
-                                    $ref: '#/components/schemas/Device'
-                                  type: array
-                                key:
-                                  type: string
-                                language:
-                                  type: string
-                                lineup:
-                                  type: string
-                                uuid:
-                                  type: string
-                              type: object
                             type: array
+                            items:
+                              $ref: '#/components/schemas/DVR'
                         type: object
                 type: object
   /livetv/dvrs/{dvrId}/prefs:
@@ -9441,22 +8819,9 @@ paths:
                       - $ref: '#/components/schemas/MediaContainerWithStatus'
                       - properties:
                           DVR:
-                            items:
-                              properties:
-                                Device:
-                                  items:
-                                    $ref: '#/components/schemas/Device'
-                                  type: array
-                                key:
-                                  type: string
-                                language:
-                                  type: string
-                                lineup:
-                                  type: string
-                                uuid:
-                                  type: string
-                              type: object
                             type: array
+                            items:
+                              $ref: '#/components/schemas/DVR'
                         type: object
                 type: object
   /livetv/dvrs/{dvrId}/reloadGuide:
@@ -9833,27 +9198,9 @@ paths:
                       - $ref: '#/components/schemas/MediaContainer'
                       - properties:
                           DeviceChannel:
-                            items:
-                              properties:
-                                drm:
-                                  description: Indicates the channel is DRMed and thus may not be playable
-                                  type: boolean
-                                favorite:
-                                  type: boolean
-                                hd:
-                                  type: boolean
-                                identifier:
-                                  type: string
-                                key:
-                                  type: string
-                                name:
-                                  type: string
-                                signalQuality:
-                                  type: integer
-                                signalStrength:
-                                  type: integer
-                              type: object
                             type: array
+                            items:
+                              $ref: '#/components/schemas/DeviceChannel'
                         type: object
                 type: object
         '404':
@@ -11333,65 +10680,9 @@ paths:
                       - $ref: '#/components/schemas/MediaContainer'
                       - properties:
                           DownloadQueueItem:
-                            items:
-                              properties:
-                                DecisionResult:
-                                  properties:
-                                    availableBandwidth:
-                                      description: The maximum bitrate set when item was added
-                                      type: integer
-                                    directPlayDecisionCode:
-                                      type: integer
-                                    directPlayDecisionText:
-                                      type: string
-                                    generalDecisionCode:
-                                      type: integer
-                                    generalDecisionText:
-                                      type: string
-                                    mdeDecisionCode:
-                                      description: The code indicating the status of evaluation of playback when client indicates `hasMDE=1`
-                                      type: integer
-                                    mdeDecisionText:
-                                      description: Descriptive text for the above code
-                                      type: string
-                                    transcodeDecisionCode:
-                                      type: integer
-                                    transcodeDecisionText:
-                                      type: string
-                                  type: object
-                                error:
-                                  description: The error encountered in transcoding or decision
-                                  type: string
-                                id:
-                                  type: integer
-                                key:
-                                  type: string
-                                queueId:
-                                  type: integer
-                                status:
-                                  description: |
-                                    The state of the item:
-                                      - deciding: The item decision is pending
-                                      - waiting: The item is waiting for transcode
-                                      - processing: The item is being transcoded
-                                      - available: The item is available for download
-                                      - error: The item encountered an error in the decision or transcode
-                                      - expired: The transcoded item has timed out and is no longer available
-                                  enum:
-                                    - deciding
-                                    - waiting
-                                    - processing
-                                    - available
-                                    - error
-                                    - expired
-                                  type: string
-                                transcode:
-                                  description: The transcode session object which is not yet documented otherwise it'd be a $ref here.
-                                  type: object
-                                TranscodeSession:
-                                  $ref: '#/components/schemas/TranscodeSession'
-                              type: object
                             type: array
+                            items:
+                              $ref: '#/components/schemas/DownloadQueueItem'
                         type: object
   /downloadQueue/{queueId}/items/{itemId}/restart:
     post:
@@ -12358,22 +11649,9 @@ paths:
                       - $ref: '#/components/schemas/MediaContainerWithStatus'
                       - properties:
                           DVR:
-                            items:
-                              properties:
-                                Device:
-                                  items:
-                                    $ref: '#/components/schemas/Device'
-                                  type: array
-                                key:
-                                  type: string
-                                language:
-                                  type: string
-                                lineup:
-                                  type: string
-                                uuid:
-                                  type: string
-                              type: object
                             type: array
+                            items:
+                              $ref: '#/components/schemas/DVR'
                         type: object
                 type: object
     put:
@@ -12430,22 +11708,9 @@ paths:
                       - $ref: '#/components/schemas/MediaContainerWithStatus'
                       - properties:
                           DVR:
-                            items:
-                              properties:
-                                Device:
-                                  items:
-                                    $ref: '#/components/schemas/Device'
-                                  type: array
-                                key:
-                                  type: string
-                                language:
-                                  type: string
-                                lineup:
-                                  type: string
-                                uuid:
-                                  type: string
-                              type: object
                             type: array
+                            items:
+                              $ref: '#/components/schemas/DVR'
                         type: object
                 type: object
   /livetv/epg/countries/{country}/{epgId}/lineups:
@@ -12547,18 +11812,9 @@ paths:
                       - $ref: '#/components/schemas/MediaContainer'
                       - properties:
                           Country:
-                            items:
-                              properties:
-                                key:
-                                  type: string
-                                national:
-                                  type: boolean
-                                title:
-                                  type: string
-                                type:
-                                  type: string
-                              type: object
                             type: array
+                            items:
+                              $ref: '#/components/schemas/EPGRegion'
                         type: object
                 type: object
         '404':
@@ -14059,22 +13315,9 @@ components:
                   - $ref: '#/components/schemas/MediaContainerWithStatus'
                   - properties:
                       DVR:
-                        items:
-                          properties:
-                            Device:
-                              items:
-                                $ref: '#/components/schemas/Device'
-                              type: array
-                            key:
-                              type: string
-                            language:
-                              type: string
-                            lineup:
-                              type: string
-                            uuid:
-                              type: string
-                          type: object
                         type: array
+                        items:
+                          $ref: '#/components/schemas/DVR'
                     type: object
             type: object
     get-responses-200:
@@ -14093,51 +13336,9 @@ components:
                   - $ref: '#/components/schemas/MediaContainer'
                   - properties:
                       Hub:
-                        items:
-                          properties:
-                            homeVisibility:
-                              description: |
-                                Whether this hub is visible on the home screen
-                                  - all: Visible to all users
-                                  - none: Visible to no users
-                                  - admin: Visible to only admin users
-                                  - shared: Visible to shared users
-                              enum:
-                                - all
-                                - none
-                                - admin
-                                - shared
-                              type: string
-                            identifier:
-                              description: The identifier for this hub
-                              type: string
-                            promotedToOwnHome:
-                              description: Whether this hub is visible to admin user home
-                              type: boolean
-                            promotedToRecommended:
-                              description: Whether this hub is promoted to all for recommendations
-                              type: boolean
-                            promotedToSharedHome:
-                              description: Whether this hub is visible to shared user's home
-                              type: boolean
-                            recommendationsVisibility:
-                              description: |
-                                The visibility of this hub in recommendations:
-                                  - all: Visible to all users
-                                  - none: Visible to no users
-                                  - admin: Visible to only admin users
-                                  - shared: Visible to shared users
-                              enum:
-                                - all
-                                - none
-                                - admin
-                                - shared
-                              type: string
-                            title:
-                              description: The title of this hub
-                              type: string
-                          type: object
                         type: array
+                        items:
+                          $ref: '#/components/schemas/ManagedHub'
                     type: object
             type: object
     historyAll-get-responses-200:
@@ -14156,43 +13357,9 @@ components:
                   - $ref: '#/components/schemas/MediaContainer'
                   - properties:
                       Metadata:
-                        items:
-                          properties:
-                            accountID:
-                              description: The account id of this playback
-                              type: integer
-                            deviceID:
-                              description: The device id which played the item
-                              type: integer
-                            historyKey:
-                              description: The key for this individual history item
-                              type: string
-                            key:
-                              description: The metadata key for the item played
-                              type: string
-                            librarySectionID:
-                              description: The library section id containing the item played
-                              type: string
-                            originallyAvailableAt:
-                              description: The originally available at of the item played
-                              type: string
-                            ratingKey:
-                              description: The rating key for the item played
-                              type: string
-                            thumb:
-                              description: The thumb of the item played
-                              type: string
-                            title:
-                              description: The title of the item played
-                              type: string
-                            type:
-                              description: The metadata type of the item played
-                              type: string
-                            viewedAt:
-                              description: The time when the item was played
-                              type: integer
-                          type: object
                         type: array
+                        items:
+                          $ref: '#/components/schemas/PlaybackHistoryMetadata'
                     type: object
             type: object
     post-responses-200:
@@ -14204,27 +13371,7 @@ components:
               MediaContainer:
                 allOf:
                   - $ref: '#/components/schemas/MediaContainer'
-                  - additionalProperties: true
-                    properties:
-                      color:
-                        type: string
-                      endTimeOffset:
-                        type: integer
-                      id:
-                        type: integer
-                      startTimeOffset:
-                        type: integer
-                      title:
-                        type: string
-                      type:
-                        enum:
-                          - intro
-                          - commercial
-                          - bookmark
-                          - resume
-                          - credit
-                        type: string
-                    type: object
+                  - $ref: '#/components/schemas/Marker'
             type: object
     LibrarySections:
       description: OK
@@ -14951,36 +14098,7 @@ components:
                 Device:
                   type: array
                   items:
-                    type: object
-                    properties:
-                      ChannelMapping:
-                        type: array
-                        items:
-                          $ref: '#/components/schemas/ChannelMapping'
-                      key:
-                        type: string
-                      lastSeenAt:
-                        type: integer
-                      make:
-                        type: string
-                      model:
-                        type: string
-                      modelNumber:
-                        type: string
-                      protocol:
-                        type: string
-                      sources:
-                        type: string
-                      state:
-                        type: string
-                      status:
-                        type: string
-                      tuners:
-                        type: string
-                      uri:
-                        type: string
-                      uuid:
-                        type: string
+                    $ref: '#/components/schemas/Device'
     MediaContainerWithDirectory:
       type: object
       properties:
@@ -17002,3 +16120,586 @@ components:
         thumb:
           description: Thumb image to display for the user
           type: string
+    DVR:
+      type: object
+      properties:
+        Device:
+          type: array
+          items:
+            $ref: '#/components/schemas/Device'
+        key:
+          type: string
+        language:
+          type: string
+        lineup:
+          type: string
+        uuid:
+          type: string
+    DecisionResult:
+      type: object
+      properties:
+        availableBandwidth:
+          description: The maximum bitrate set when item was added
+          type: integer
+        directPlayDecisionCode:
+          type: integer
+        directPlayDecisionText:
+          type: string
+        generalDecisionCode:
+          type: integer
+        generalDecisionText:
+          type: string
+        mdeDecisionCode:
+          description: The code indicating the status of evaluation of playback when client indicates `hasMDE=1`
+          type: integer
+        mdeDecisionText:
+          description: Descriptive text for the above code
+          type: string
+        transcodeDecisionCode:
+          type: integer
+        transcodeDecisionText:
+          type: string
+    DownloadQueueItem:
+      type: object
+      properties:
+        DecisionResult:
+          $ref: '#/components/schemas/DecisionResult'
+        error:
+          description: The error encountered in transcoding or decision
+          type: string
+        id:
+          type: integer
+        key:
+          type: string
+        queueId:
+          type: integer
+        status:
+          description: |
+            The state of the item:
+              - deciding: The item decision is pending
+              - waiting: The item is waiting for transcode
+              - processing: The item is being transcoded
+              - available: The item is available for download
+              - error: The item encountered an error in the decision or transcode
+              - expired: The transcoded item has timed out and is no longer available
+          enum:
+            - deciding
+            - waiting
+            - processing
+            - available
+            - error
+            - expired
+          type: string
+        transcode:
+          description: The transcode session object which is not yet documented otherwise it'd be a $ref here.
+          type: object
+        TranscodeSession:
+          $ref: '#/components/schemas/TranscodeSession'
+    DownloadQueue:
+      type: object
+      properties:
+        id:
+          type: integer
+        itemCount:
+          type: integer
+        status:
+          description: |
+            The state of this queue
+              - deciding: At least one item is still being decided
+              - waiting: At least one item is waiting for transcode and none are currently transcoding
+              - processing: At least one item is being transcoded
+              - done: All items are available (or potentially expired)
+              - error: At least one item has encountered an error
+          enum:
+            - deciding
+            - waiting
+            - processing
+            - done
+            - error
+          type: string
+    PlaybackHistoryMetadata:
+      type: object
+      properties:
+        accountID:
+          description: The account id of this playback
+          type: integer
+        deviceID:
+          description: The device id which played the item
+          type: integer
+        grandparentTitle:
+          description: The title of the grandparent item (e.g. show name for an episode)
+          type: string
+        grandparentRatingKey:
+          description: The rating key of the grandparent item
+          type: string
+        historyKey:
+          description: The key for this individual history item
+          type: string
+        index:
+          description: The index of the item (e.g. episode number)
+          type: integer
+        key:
+          description: The metadata key for the item played
+          type: string
+        librarySectionID:
+          description: The library section id containing the item played
+          type: string
+        originallyAvailableAt:
+          description: The originally available at of the item played
+          type: string
+        parentIndex:
+          description: The index of the parent item (e.g. season number)
+          type: integer
+        parentTitle:
+          description: The title of the parent item (e.g. season name for an episode)
+          type: string
+        ratingKey:
+          description: The rating key for the item played
+          type: string
+        thumb:
+          description: The thumb of the item played
+          type: string
+        title:
+          description: The title of the item played
+          type: string
+        type:
+          description: The metadata type of the item played
+          type: string
+        viewedAt:
+          description: The time when the item was played
+          type: integer
+    Activity:
+      type: object
+      properties:
+        cancellable:
+          description: Indicates whether this activity can be cancelled
+          type: boolean
+        Context:
+          description: An object with additional values
+          additionalProperties: true
+          type: object
+        progress:
+          description: A progress percentage.  A value of -1 means the progress is indeterminate
+          maximum: 100
+          minimum: -1
+          type: number
+        Response:
+          description: An object with the response to the async opperation
+          additionalProperties: true
+          type: object
+        subtitle:
+          description: A user-friendly sub-title for this activity
+          type: string
+        title:
+          description: A user-friendly title for this activity
+          type: string
+        type:
+          description: The type of activity
+          type: string
+        userID:
+          description: The user this activity belongs to
+          type: integer
+        uuid:
+          description: The ID of the activity
+          type: string
+    TranscodeJob:
+      type: object
+      properties:
+        generatorID:
+          type: integer
+        key:
+          type: string
+        progress:
+          maximum: 100
+          minimum: 0
+          type: number
+        ratingKey:
+          type: string
+        remaining:
+          description: The number of seconds remaining in this job
+          type: integer
+        size:
+          description: The size of the result so far
+          type: integer
+        speed:
+          description: The speed of the transcode; 1.0 means real-time
+          type: number
+        targetTagID:
+          description: The tag associated with the job.  This could be the tag containing the optimizer settings.
+          type: integer
+        thumb:
+          type: string
+        title:
+          type: string
+        type:
+          enum:
+            - transcode
+          type: string
+    ButlerTask:
+      type: object
+      properties:
+        description:
+          description: A user-friendly description of the task
+          type: string
+        enabled:
+          description: Whether this task is enabled or not
+          type: boolean
+        interval:
+          description: The interval (in days) of when this task is run.  A value of 1 is run every day, 7 is every week, etc.
+          type: integer
+        name:
+          description: The name of the task
+          type: string
+        scheduleRandomized:
+          description: Indicates whether the timing of the task is randomized within the butler interval
+          type: boolean
+        title:
+          description: A user-friendly title of the task
+          type: string
+    UltraBlurColors:
+      type: object
+      properties:
+        bottomLeft:
+          description: The color (hex) for the bottom left quadrant.
+          type: string
+        bottomRight:
+          description: The color (hex) for the bottom right quadrant.
+          type: string
+        topLeft:
+          description: The color (hex) for the top left quadrant.
+          type: string
+        topRight:
+          description: The color (hex) for the top right quadrant.
+          type: string
+    EPGCountry:
+      type: object
+      properties:
+        code:
+          description: Three letter code
+          type: string
+        example:
+          type: string
+        flavor:
+          description: |
+            - `0`: The country is divided into regions, and following the key will lead to a list of regions.
+            - `1`: The county is divided by postal codes, and an example code is returned in `example`.
+            - `2`: The country has a single postal code, returned in `example`.
+          enum:
+            - 0
+            - 1
+            - 2
+          type: integer
+        key:
+          type: string
+        language:
+          description: Three letter language code
+          type: string
+        languageTitle:
+          description: The title of the language
+          type: string
+        title:
+          type: string
+        type:
+          type: string
+    EPGLanguage:
+      type: object
+      properties:
+        code:
+          description: 3 letter language code
+          type: string
+        title:
+          type: string
+    EPGRegion:
+      type: object
+      properties:
+        key:
+          type: string
+        national:
+          type: boolean
+        title:
+          type: string
+        type:
+          type: string
+    MediaGrabber:
+      type: object
+      properties:
+        identifier:
+          type: string
+        protocol:
+          type: string
+        title:
+          type: string
+    DeviceChannel:
+      type: object
+      properties:
+        drm:
+          description: Indicates the channel is DRMed and thus may not be playable
+          type: boolean
+        favorite:
+          type: boolean
+        hd:
+          type: boolean
+        identifier:
+          type: string
+        key:
+          type: string
+        name:
+          type: string
+        signalQuality:
+          type: integer
+        signalStrength:
+          type: integer
+    Marker:
+      type: object
+      additionalProperties: true
+      properties:
+        color:
+          type: string
+        endTimeOffset:
+          type: integer
+        id:
+          type: integer
+        startTimeOffset:
+          type: integer
+        title:
+          type: string
+        type:
+          enum:
+            - intro
+            - commercial
+            - bookmark
+            - resume
+            - credit
+          type: string
+    TopUserAccount:
+      type: object
+      properties:
+        globalViewCount:
+          type: integer
+        id:
+          type: integer
+    Release:
+      type: object
+      properties:
+        added:
+          description: A list of what has been added in this version
+          type: string
+        downloadURL:
+          description: The URL of where this update is available
+          type: string
+        fixed:
+          description: A list of what has been fixed in this version
+          type: string
+        key:
+          description: The URL key of the update
+          type: string
+        state:
+          description: |
+            The status of this update.
+
+            - available - This release is available
+            - downloading - This release is downloading
+            - downloaded - This release has been downloaded
+            - installing - This release is installing
+            - tonight - This release will be installed tonight
+            - skipped - This release has been skipped
+            - error - This release has an error
+            - notify - This release is only notifying it is available (typically because it cannot be installed on this setup)
+            - done - This release is complete
+          enum:
+            - available
+            - downloading
+            - downloaded
+            - installing
+            - tonight
+            - skipped
+            - error
+            - notify
+            - done
+          type: string
+        version:
+          description: The version available
+          type: string
+    PlayQueueResponse:
+      type: object
+      properties:
+        playQueueID:
+          description: The ID of the play queue, which is used in subsequent requests.
+          type: integer
+        playQueueLastAddedItemID:
+          description: Defines where the "Up Next" region starts
+          type: string
+        playQueueSelectedItemID:
+          description: The queue item ID of the currently selected  item.
+          type: integer
+        playQueueSelectedItemOffset:
+          description: The offset of the selected item in the play queue, from the beginning of the queue.
+          type: integer
+        playQueueSelectedMetadataItemID:
+          description: The metadata item ID of the currently selected item (matches `ratingKey` attribute in metadata item if the media provider is a library).
+          type: integer
+        playQueueShuffled:
+          description: Whether or not the queue is shuffled.
+          type: boolean
+        playQueueSourceURI:
+          description: The original URI used to create the play queue.
+          type: string
+        playQueueTotalCount:
+          description: The total number of items in the play queue.
+          type: integer
+        playQueueVersion:
+          description: The version of the play queue. It increments every time a change is made to the play queue to assist clients in knowing when to refresh.
+          type: integer
+    Connection:
+      type: object
+      properties:
+        address:
+          type: string
+        local:
+          description: Indicates if the connection is the server's LAN address
+          type: boolean
+        port:
+          type: integer
+        protocol:
+          type: string
+        relay:
+          description: Indicates the connection is over a relayed connection
+          type: boolean
+        uri:
+          type: string
+    ConnectionInfo:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        clientIdentifier:
+          type: string
+        Connection:
+          type: array
+          items:
+            $ref: '#/components/schemas/Connection'
+        name:
+          type: string
+    ConnectionInfoWrapper:
+      type: object
+      properties:
+        Device:
+          $ref: '#/components/schemas/ConnectionInfo'
+    Feature:
+      type: object
+      properties:
+        Directory:
+          type: array
+          items:
+            $ref: '#/components/schemas/Directory'
+        key:
+          type: string
+        type:
+          type: string
+    ManagedHub:
+      type: object
+      properties:
+        homeVisibility:
+          description: |
+            Whether this hub is visible on the home screen
+              - all: Visible to all users
+              - none: Visible to no users
+              - admin: Visible to only admin users
+              - shared: Visible to shared users
+          enum:
+            - all
+            - none
+            - admin
+            - shared
+          type: string
+        identifier:
+          description: The identifier for this hub
+          type: string
+        promotedToOwnHome:
+          description: Whether this hub is visible to admin user home
+          type: boolean
+        promotedToRecommended:
+          description: Whether this hub is promoted to all for recommendations
+          type: boolean
+        promotedToSharedHome:
+          description: Whether this hub is visible to shared user's home
+          type: boolean
+        recommendationsVisibility:
+          description: |
+            The visibility of this hub in recommendations:
+              - all: Visible to all users
+              - none: Visible to no users
+              - admin: Visible to only admin users
+              - shared: Visible to shared users
+          enum:
+            - all
+            - none
+            - admin
+            - shared
+          type: string
+        title:
+          description: The title of this hub
+          type: string
+    Bandwidth:
+      type: object
+      properties:
+        bandwidth:
+          description: The bandwidth at this time in kbps
+          type: integer
+        resolution:
+          description: The user-friendly resolution at this time
+          type: string
+        time:
+          description: Media playback time where this bandwidth started
+          type: integer
+    AddedQueueItem:
+      type: object
+      properties:
+        id:
+          description: The queue item id that was added or the existing one if an item already exists in this queue with the same parameters
+          type: integer
+        key:
+          description: The key added to the queue
+          type: string
+    Level:
+      type: object
+      properties:
+        v:
+          description: The level in db.
+          type: number
+    MediaContainerWithMediaGrabOperation:
+      type: object
+      properties:
+        MediaContainer:
+          allOf:
+            - $ref: '#/components/schemas/MediaContainer'
+            - type: object
+              properties:
+                MediaGrabOperation:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/MediaGrabOperation'
+    MediaContainerWithSorts:
+      type: object
+      properties:
+        MediaContainer:
+          allOf:
+            - $ref: '#/components/schemas/MediaContainer'
+            - type: object
+              properties:
+                Directory:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Sort'
+    MediaContainerWithTags:
+      type: object
+      properties:
+        MediaContainer:
+          allOf:
+            - $ref: '#/components/schemas/MediaContainer'
+            - type: object
+              properties:
+                Directory:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/Tag'
