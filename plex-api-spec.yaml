@@ -14779,8 +14779,11 @@ components:
           format: int64
           example: 1
         optimizedForStreaming:
-          type: boolean
-          example: false
+          type: integer
+          format: int32
+          enum:
+            - 0
+            - 1
         Part:
           type: array
           items:
