@@ -392,11 +392,14 @@ paths:
             text/html: {}
   /:/progress:
     get:
-      operationId: updateProgress
-      summary: Update Progress
+      operationId: getProgress
+      summary: Get Progress
       tags:
-        - General
-      description: Updates watch progress for an item.
+        - Playback
+      description: Get or update watch progress for a media item.
+      security:
+        - token:
+            - admin
       parameters:
         - $ref: "#/components/parameters/accepts"
         - $ref: "#/components/parameters/X-Plex-Client-Identifier"
@@ -410,22 +413,17 @@ paths:
         - $ref: "#/components/parameters/X-Plex-Device-Name"
         - $ref: "#/components/parameters/X-Plex-Marketplace"
         - name: key
+          description: The metadata key of the item
           in: query
           required: true
           schema:
             type: string
-        - name: identifier
-          in: query
-          schema:
-            type: string
         - name: time
+          description: The current playback position in milliseconds
           in: query
+          required: true
           schema:
             type: integer
-        - name: state
-          in: query
-          schema:
-            type: string
       responses:
         '200':
           description: OK
@@ -864,10 +862,13 @@ paths:
   /actions/removeFromContinueWatching:
     put:
       operationId: removeFromContinueWatching
-      summary: Remove from Continue Watching
+      summary: Remove From Continue Watching
       tags:
-        - General
-      description: Remove an item from the Continue Watching hub.
+        - Playback
+      description: Remove an item from the Continue Watching list.
+      security:
+        - token:
+            - admin
       parameters:
         - $ref: "#/components/parameters/accepts"
         - $ref: "#/components/parameters/X-Plex-Client-Identifier"
@@ -880,7 +881,8 @@ paths:
         - $ref: "#/components/parameters/X-Plex-Device-Vendor"
         - $ref: "#/components/parameters/X-Plex-Device-Name"
         - $ref: "#/components/parameters/X-Plex-Marketplace"
-        - name: ratingKey
+        - name: key
+          description: The metadata key of the item
           in: query
           required: true
           schema:
@@ -1432,13 +1434,45 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithHubs"
+  /hubs/continueWatching/items:
+    get:
+      operationId: getContinueWatchingItems
+      summary: Get Continue Watching Items
+      tags:
+        - Hubs
+      description: Get direct access to Continue Watching items.
+      security:
+        - token:
+            - admin
+      parameters:
+        - $ref: "#/components/parameters/accepts"
+        - $ref: "#/components/parameters/X-Plex-Client-Identifier"
+        - $ref: "#/components/parameters/X-Plex-Product"
+        - $ref: "#/components/parameters/X-Plex-Version"
+        - $ref: "#/components/parameters/X-Plex-Platform"
+        - $ref: "#/components/parameters/X-Plex-Platform-Version"
+        - $ref: "#/components/parameters/X-Plex-Device"
+        - $ref: "#/components/parameters/X-Plex-Model"
+        - $ref: "#/components/parameters/X-Plex-Device-Vendor"
+        - $ref: "#/components/parameters/X-Plex-Device-Name"
+        - $ref: "#/components/parameters/X-Plex-Marketplace"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MediaContainerWithMetadata"
   /hubs/home/recentlyAdded:
     get:
       operationId: getHomeRecentlyAdded
       summary: Get Home Recently Added
       tags:
         - Hubs
-      description: Get hub-centric recently added items.
+      description: Get the recently added hub for the home screen.
+      security:
+        - token:
+            - admin
       parameters:
         - $ref: "#/components/parameters/accepts"
         - $ref: "#/components/parameters/X-Plex-Client-Identifier"
@@ -2003,6 +2037,54 @@ paths:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithMetadata"
   /library/optimize:
+    get:
+      operationId: optimizeLibrary
+      summary: Optimize Library
+      tags:
+        - Library
+      description: Optimize the database globally across all library sections.
+      security:
+        - token:
+            - admin
+      parameters:
+        - $ref: "#/components/parameters/accepts"
+        - $ref: "#/components/parameters/X-Plex-Client-Identifier"
+        - $ref: "#/components/parameters/X-Plex-Product"
+        - $ref: "#/components/parameters/X-Plex-Version"
+        - $ref: "#/components/parameters/X-Plex-Platform"
+        - $ref: "#/components/parameters/X-Plex-Platform-Version"
+        - $ref: "#/components/parameters/X-Plex-Device"
+        - $ref: "#/components/parameters/X-Plex-Model"
+        - $ref: "#/components/parameters/X-Plex-Device-Vendor"
+        - $ref: "#/components/parameters/X-Plex-Device-Name"
+        - $ref: "#/components/parameters/X-Plex-Marketplace"
+      responses:
+        '200':
+          description: OK
+    post:
+      operationId: optimizeLibraryPost
+      summary: Optimize Library
+      tags:
+        - Library
+      description: Optimize the database globally across all library sections.
+      security:
+        - token:
+            - admin
+      parameters:
+        - $ref: "#/components/parameters/accepts"
+        - $ref: "#/components/parameters/X-Plex-Client-Identifier"
+        - $ref: "#/components/parameters/X-Plex-Product"
+        - $ref: "#/components/parameters/X-Plex-Version"
+        - $ref: "#/components/parameters/X-Plex-Platform"
+        - $ref: "#/components/parameters/X-Plex-Platform-Version"
+        - $ref: "#/components/parameters/X-Plex-Device"
+        - $ref: "#/components/parameters/X-Plex-Model"
+        - $ref: "#/components/parameters/X-Plex-Device-Vendor"
+        - $ref: "#/components/parameters/X-Plex-Device-Name"
+        - $ref: "#/components/parameters/X-Plex-Marketplace"
+      responses:
+        '200':
+          description: OK
     put:
       operationId: optimizeDatabase
       summary: Optimize the Database
@@ -2074,11 +2156,14 @@ paths:
                 $ref: "#/components/schemas/MediaContainerWithArtwork"
   /library/recentlyAdded:
     get:
-      operationId: getRecentlyAdded
-      summary: Get Recently Added
+      operationId: getRecentlyAddedGlobal
+      summary: Get Global Recently Added
       tags:
         - Library
-      description: Get globally recently added items across all libraries.
+      description: Get recently added items across all library sections.
+      security:
+        - token:
+            - admin
       parameters:
         - $ref: "#/components/parameters/accepts"
         - $ref: "#/components/parameters/X-Plex-Client-Identifier"
@@ -7992,6 +8077,240 @@ paths:
           description: Collection not found
           content:
             text/html: {}
+  /library/metadata/{id}/arts:
+    post:
+      operationId: uploadArt
+      summary: Upload Art
+      tags:
+        - Library
+      description: Upload custom background art for a metadata item.
+      security:
+        - token:
+            - admin
+      parameters:
+        - $ref: "#/components/parameters/accepts"
+        - $ref: "#/components/parameters/X-Plex-Client-Identifier"
+        - $ref: "#/components/parameters/X-Plex-Product"
+        - $ref: "#/components/parameters/X-Plex-Version"
+        - $ref: "#/components/parameters/X-Plex-Platform"
+        - $ref: "#/components/parameters/X-Plex-Platform-Version"
+        - $ref: "#/components/parameters/X-Plex-Device"
+        - $ref: "#/components/parameters/X-Plex-Model"
+        - $ref: "#/components/parameters/X-Plex-Device-Vendor"
+        - $ref: "#/components/parameters/X-Plex-Device-Name"
+        - $ref: "#/components/parameters/X-Plex-Marketplace"
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: OK
+  /library/metadata/{id}/children:
+    get:
+      operationId: getMetadataChildren
+      summary: Get Metadata Children
+      tags:
+        - Library
+      description: Get children of a show, season, artist, or album.
+      security:
+        - token:
+            - admin
+      parameters:
+        - $ref: "#/components/parameters/accepts"
+        - $ref: "#/components/parameters/X-Plex-Client-Identifier"
+        - $ref: "#/components/parameters/X-Plex-Product"
+        - $ref: "#/components/parameters/X-Plex-Version"
+        - $ref: "#/components/parameters/X-Plex-Platform"
+        - $ref: "#/components/parameters/X-Plex-Platform-Version"
+        - $ref: "#/components/parameters/X-Plex-Device"
+        - $ref: "#/components/parameters/X-Plex-Model"
+        - $ref: "#/components/parameters/X-Plex-Device-Vendor"
+        - $ref: "#/components/parameters/X-Plex-Device-Name"
+        - $ref: "#/components/parameters/X-Plex-Marketplace"
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MediaContainerWithMetadata"
+  /library/metadata/{id}/computePath:
+    get:
+      operationId: computeSonicPath
+      summary: Compute Sonic Path
+      tags:
+        - Library
+      description: Compute a sonic adventure path from a starting track.
+      security:
+        - token:
+            - admin
+      parameters:
+        - $ref: "#/components/parameters/accepts"
+        - $ref: "#/components/parameters/X-Plex-Client-Identifier"
+        - $ref: "#/components/parameters/X-Plex-Product"
+        - $ref: "#/components/parameters/X-Plex-Version"
+        - $ref: "#/components/parameters/X-Plex-Platform"
+        - $ref: "#/components/parameters/X-Plex-Platform-Version"
+        - $ref: "#/components/parameters/X-Plex-Device"
+        - $ref: "#/components/parameters/X-Plex-Model"
+        - $ref: "#/components/parameters/X-Plex-Device-Vendor"
+        - $ref: "#/components/parameters/X-Plex-Device-Name"
+        - $ref: "#/components/parameters/X-Plex-Marketplace"
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MediaContainerWithMetadata"
+  /library/metadata/{id}/grandchildren:
+    get:
+      operationId: getMetadataGrandchildren
+      summary: Get Metadata Grandchildren
+      tags:
+        - Library
+      description: Get grandchildren (e.g. episodes under a show).
+      security:
+        - token:
+            - admin
+      parameters:
+        - $ref: "#/components/parameters/accepts"
+        - $ref: "#/components/parameters/X-Plex-Client-Identifier"
+        - $ref: "#/components/parameters/X-Plex-Product"
+        - $ref: "#/components/parameters/X-Plex-Version"
+        - $ref: "#/components/parameters/X-Plex-Platform"
+        - $ref: "#/components/parameters/X-Plex-Platform-Version"
+        - $ref: "#/components/parameters/X-Plex-Device"
+        - $ref: "#/components/parameters/X-Plex-Model"
+        - $ref: "#/components/parameters/X-Plex-Device-Vendor"
+        - $ref: "#/components/parameters/X-Plex-Device-Name"
+        - $ref: "#/components/parameters/X-Plex-Marketplace"
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MediaContainerWithMetadata"
+  /library/metadata/{id}/nearest:
+    get:
+      operationId: getNearestMetadata
+      summary: Get Nearest Metadata
+      tags:
+        - Library
+      description: Get sonically similar items for a music track.
+      security:
+        - token:
+            - admin
+      parameters:
+        - $ref: "#/components/parameters/accepts"
+        - $ref: "#/components/parameters/X-Plex-Client-Identifier"
+        - $ref: "#/components/parameters/X-Plex-Product"
+        - $ref: "#/components/parameters/X-Plex-Version"
+        - $ref: "#/components/parameters/X-Plex-Platform"
+        - $ref: "#/components/parameters/X-Plex-Platform-Version"
+        - $ref: "#/components/parameters/X-Plex-Device"
+        - $ref: "#/components/parameters/X-Plex-Model"
+        - $ref: "#/components/parameters/X-Plex-Device-Vendor"
+        - $ref: "#/components/parameters/X-Plex-Device-Name"
+        - $ref: "#/components/parameters/X-Plex-Marketplace"
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: excludeParentID
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: excludeGrandparentID
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+        - name: maxDistance
+          in: query
+          required: false
+          schema:
+            type: number
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MediaContainerWithMetadata"
+  /library/metadata/{id}/posters:
+    post:
+      operationId: uploadPoster
+      summary: Upload Poster
+      tags:
+        - Library
+      description: Upload a custom poster image for a metadata item.
+      security:
+        - token:
+            - admin
+      parameters:
+        - $ref: "#/components/parameters/accepts"
+        - $ref: "#/components/parameters/X-Plex-Client-Identifier"
+        - $ref: "#/components/parameters/X-Plex-Product"
+        - $ref: "#/components/parameters/X-Plex-Version"
+        - $ref: "#/components/parameters/X-Plex-Platform"
+        - $ref: "#/components/parameters/X-Plex-Platform-Version"
+        - $ref: "#/components/parameters/X-Plex-Device"
+        - $ref: "#/components/parameters/X-Plex-Model"
+        - $ref: "#/components/parameters/X-Plex-Device-Vendor"
+        - $ref: "#/components/parameters/X-Plex-Device-Name"
+        - $ref: "#/components/parameters/X-Plex-Marketplace"
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: OK
   /library/metadata/{ids}:
     delete:
       operationId: deleteMetadataItem
@@ -8808,57 +9127,6 @@ paths:
       responses:
         '200':
           $ref: "#/components/responses/200"
-  /library/metadata/{ids}/nearest:
-    get:
-      operationId: listSonicallySimilar
-      summary: Get nearest tracks to metadata item
-      tags:
-        - Library
-      description: Get the nearest tracks, sonically, to the provided track
-      parameters:
-        - $ref: "#/components/parameters/accepts"
-        - $ref: "#/components/parameters/X-Plex-Client-Identifier"
-        - $ref: "#/components/parameters/X-Plex-Product"
-        - $ref: "#/components/parameters/X-Plex-Version"
-        - $ref: "#/components/parameters/X-Plex-Platform"
-        - $ref: "#/components/parameters/X-Plex-Platform-Version"
-        - $ref: "#/components/parameters/X-Plex-Device"
-        - $ref: "#/components/parameters/X-Plex-Model"
-        - $ref: "#/components/parameters/X-Plex-Device-Vendor"
-        - $ref: "#/components/parameters/X-Plex-Device-Name"
-        - $ref: "#/components/parameters/X-Plex-Marketplace"
-        - name: ids
-          in: path
-          required: true
-          schema:
-            type: string
-        - name: excludeParentID
-          in: query
-          required: false
-          schema:
-            type: integer
-        - name: excludeGrandparentID
-          in: query
-          required: false
-          schema:
-            type: integer
-        - name: limit
-          in: query
-          required: false
-          schema:
-            type: integer
-        - name: maxDistance
-          in: query
-          required: false
-          schema:
-            type: number
-      responses:
-        '200':
-          description: OK
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/MediaContainerWithMetadata"
   /library/metadata/{ids}/prefs:
     put:
       operationId: setItemPreferences
@@ -9674,6 +9942,9 @@ paths:
       tags:
         - Content
       description: Get the items in a section, potentially filtering them
+      security:
+        - token:
+            - admin
       parameters:
         - $ref: "#/components/parameters/accepts"
         - $ref: "#/components/parameters/X-Plex-Client-Identifier"
@@ -9689,6 +9960,22 @@ paths:
         - $ref: "#/components/parameters/X-Plex-Container-Start"
         - $ref: "#/components/parameters/X-Plex-Container-Size"
         - $ref: "#/components/parameters/mediaQuery"
+        - name: sectionId
+          description: The id of the section
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: type
+          description: Filter by metadata type (1=movie, 2=show, 3=season, 4=episode, 8=artist, 9=album, 10=track)
+          in: query
+          schema:
+            type: integer
+        - name: sort
+          description: Sort key and direction (e.g. addedAt:desc, titleSort)
+          in: query
+          schema:
+            type: string
         - name: includeMeta
           description: Adds the Meta object to the response
           in: query
@@ -9699,59 +9986,143 @@ paths:
           in: query
           schema:
             $ref: "#/components/schemas/BoolInt"
-        - name: sectionId
-          description: The id of the section
-          in: path
-          required: true
+        - name: includeCollections
+          description: Include collection items in results
+          in: query
           schema:
-            type: string
+            $ref: "#/components/schemas/BoolInt"
         - name: includeExternalMedia
-          description: Include external/online media in the response
+          description: Include external or online media
           in: query
           schema:
-            type: boolean
-        - name: includeExtras
-          description: Include trailers, behind-the-scenes, and other extras
+            $ref: "#/components/schemas/BoolInt"
+        - name: includeAdvanced
+          description: Include advanced settings
           in: query
           schema:
-            type: boolean
-        - name: includeRelated
-          description: Include related items in the response
-          in: query
-          schema:
-            type: boolean
-        - name: includeOnDeck
-          description: Include On Deck status in the response
-          in: query
-          schema:
-            type: boolean
-        - name: includePopularLeaves
-          description: Include popular episodes in the response
-          in: query
-          schema:
-            type: boolean
-        - name: includeReviews
-          description: Include user reviews in the response
-          in: query
-          schema:
-            type: boolean
-        - name: includeStations
-          description: Include radio station data in the response
-          in: query
-          schema:
-            type: boolean
+            $ref: "#/components/schemas/BoolInt"
         - name: checkFiles
-          description: Verify file existence on disk
+          description: Verify file existence
           in: query
           schema:
-            type: boolean
-        - name: excludeElements
-          description: Comma-separated list of elements to exclude from the response
+            $ref: "#/components/schemas/BoolInt"
+        - name: includeRelated
+          description: Include related items
+          in: query
+          schema:
+            $ref: "#/components/schemas/BoolInt"
+        - name: includeExtras
+          description: Include trailers, behind-the-scenes, etc.
+          in: query
+          schema:
+            $ref: "#/components/schemas/BoolInt"
+        - name: includePopularLeaves
+          description: Include popular episodes
+          in: query
+          schema:
+            $ref: "#/components/schemas/BoolInt"
+        - name: includeConcerts
+          description: Include concert items
+          in: query
+          schema:
+            $ref: "#/components/schemas/BoolInt"
+        - name: includeOnDeck
+          description: Include On Deck status
+          in: query
+          schema:
+            $ref: "#/components/schemas/BoolInt"
+        - name: includeChapters
+          description: Include chapter markers
+          in: query
+          schema:
+            $ref: "#/components/schemas/BoolInt"
+        - name: includePreferences
+          description: Include user preferences
+          in: query
+          schema:
+            $ref: "#/components/schemas/BoolInt"
+        - name: includeBandwidths
+          description: Include bandwidth info
+          in: query
+          schema:
+            $ref: "#/components/schemas/BoolInt"
+        - name: includeLoudnessRamps
+          description: Include loudness ramp data
+          in: query
+          schema:
+            $ref: "#/components/schemas/BoolInt"
+        - name: includeStations
+          description: Include radio station data
+          in: query
+          schema:
+            $ref: "#/components/schemas/BoolInt"
+        - name: includeExternalIds
+          description: Include external GUIDs
+          in: query
+          schema:
+            $ref: "#/components/schemas/BoolInt"
+        - name: includeReviews
+          description: Include user reviews
+          in: query
+          schema:
+            $ref: "#/components/schemas/BoolInt"
+        - name: includeCredits
+          description: Include full credits
+          in: query
+          schema:
+            $ref: "#/components/schemas/BoolInt"
+        - name: includeArt
+          description: Force inclusion of artwork fields
+          in: query
+          schema:
+            $ref: "#/components/schemas/BoolInt"
+        - name: includeThumb
+          description: Force inclusion of thumbnail fields
+          in: query
+          schema:
+            $ref: "#/components/schemas/BoolInt"
+        - name: includeBanner
+          description: Force inclusion of banner fields
+          in: query
+          schema:
+            $ref: "#/components/schemas/BoolInt"
+        - name: includeTheme
+          description: Force inclusion of theme fields
+          in: query
+          schema:
+            $ref: "#/components/schemas/BoolInt"
+        - name: includeFields
+          description: Whitelist of fields to return
           in: query
           schema:
             type: string
         - name: excludeFields
-          description: Comma-separated list of fields to exclude from the response
+          description: Blacklist of fields to omit
+          in: query
+          schema:
+            type: string
+        - name: asyncAugmentMetadata
+          description: Async metadata augmentation
+          in: query
+          schema:
+            $ref: "#/components/schemas/BoolInt"
+        - name: asyncRefreshLocalMediaAgent
+          description: Async local media agent refresh
+          in: query
+          schema:
+            $ref: "#/components/schemas/BoolInt"
+        - name: nocache
+          description: Bypass cache
+          in: query
+          schema:
+            $ref: "#/components/schemas/BoolInt"
+        - name: skipRefresh
+          description: Skip synchronous refresh
+          in: query
+          schema:
+            $ref: "#/components/schemas/BoolInt"
+        - name: excludeElements
+          description: Comma-separated list of elements to exclude from the response
           in: query
           schema:
             type: string
@@ -10147,6 +10518,176 @@ paths:
           description: A paramater is either invalid or missing
           content:
             text/html: {}
+  /library/sections/{sectionId}/byContentRating:
+    get:
+      operationId: getByContentRating
+      summary: Get By Content Rating
+      tags:
+        - Library
+      description: Browse items in a library section grouped by content rating.
+      security:
+        - token:
+            - admin
+      parameters:
+        - $ref: "#/components/parameters/accepts"
+        - $ref: "#/components/parameters/X-Plex-Client-Identifier"
+        - $ref: "#/components/parameters/X-Plex-Product"
+        - $ref: "#/components/parameters/X-Plex-Version"
+        - $ref: "#/components/parameters/X-Plex-Platform"
+        - $ref: "#/components/parameters/X-Plex-Platform-Version"
+        - $ref: "#/components/parameters/X-Plex-Device"
+        - $ref: "#/components/parameters/X-Plex-Model"
+        - $ref: "#/components/parameters/X-Plex-Device-Vendor"
+        - $ref: "#/components/parameters/X-Plex-Device-Name"
+        - $ref: "#/components/parameters/X-Plex-Marketplace"
+        - name: sectionId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MediaContainerWithMetadata"
+  /library/sections/{sectionId}/byDecade:
+    get:
+      operationId: getByDecade
+      summary: Get By Decade
+      tags:
+        - Library
+      description: Browse items in a library section grouped by decade.
+      security:
+        - token:
+            - admin
+      parameters:
+        - $ref: "#/components/parameters/accepts"
+        - $ref: "#/components/parameters/X-Plex-Client-Identifier"
+        - $ref: "#/components/parameters/X-Plex-Product"
+        - $ref: "#/components/parameters/X-Plex-Version"
+        - $ref: "#/components/parameters/X-Plex-Platform"
+        - $ref: "#/components/parameters/X-Plex-Platform-Version"
+        - $ref: "#/components/parameters/X-Plex-Device"
+        - $ref: "#/components/parameters/X-Plex-Model"
+        - $ref: "#/components/parameters/X-Plex-Device-Vendor"
+        - $ref: "#/components/parameters/X-Plex-Device-Name"
+        - $ref: "#/components/parameters/X-Plex-Marketplace"
+        - name: sectionId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MediaContainerWithMetadata"
+  /library/sections/{sectionId}/byFolder:
+    get:
+      operationId: getByFolder
+      summary: Get By Folder
+      tags:
+        - Library
+      description: Browse items in a library section by underlying filesystem folder.
+      security:
+        - token:
+            - admin
+      parameters:
+        - $ref: "#/components/parameters/accepts"
+        - $ref: "#/components/parameters/X-Plex-Client-Identifier"
+        - $ref: "#/components/parameters/X-Plex-Product"
+        - $ref: "#/components/parameters/X-Plex-Version"
+        - $ref: "#/components/parameters/X-Plex-Platform"
+        - $ref: "#/components/parameters/X-Plex-Platform-Version"
+        - $ref: "#/components/parameters/X-Plex-Device"
+        - $ref: "#/components/parameters/X-Plex-Model"
+        - $ref: "#/components/parameters/X-Plex-Device-Vendor"
+        - $ref: "#/components/parameters/X-Plex-Device-Name"
+        - $ref: "#/components/parameters/X-Plex-Marketplace"
+        - name: sectionId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MediaContainerWithMetadata"
+  /library/sections/{sectionId}/byResolution:
+    get:
+      operationId: getByResolution
+      summary: Get By Resolution
+      tags:
+        - Library
+      description: Browse items in a library section grouped by resolution.
+      security:
+        - token:
+            - admin
+      parameters:
+        - $ref: "#/components/parameters/accepts"
+        - $ref: "#/components/parameters/X-Plex-Client-Identifier"
+        - $ref: "#/components/parameters/X-Plex-Product"
+        - $ref: "#/components/parameters/X-Plex-Version"
+        - $ref: "#/components/parameters/X-Plex-Platform"
+        - $ref: "#/components/parameters/X-Plex-Platform-Version"
+        - $ref: "#/components/parameters/X-Plex-Device"
+        - $ref: "#/components/parameters/X-Plex-Model"
+        - $ref: "#/components/parameters/X-Plex-Device-Vendor"
+        - $ref: "#/components/parameters/X-Plex-Device-Name"
+        - $ref: "#/components/parameters/X-Plex-Marketplace"
+        - name: sectionId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MediaContainerWithMetadata"
+  /library/sections/{sectionId}/byYear:
+    get:
+      operationId: getByYear
+      summary: Get By Year
+      tags:
+        - Library
+      description: Browse items in a library section grouped by year.
+      security:
+        - token:
+            - admin
+      parameters:
+        - $ref: "#/components/parameters/accepts"
+        - $ref: "#/components/parameters/X-Plex-Client-Identifier"
+        - $ref: "#/components/parameters/X-Plex-Product"
+        - $ref: "#/components/parameters/X-Plex-Version"
+        - $ref: "#/components/parameters/X-Plex-Platform"
+        - $ref: "#/components/parameters/X-Plex-Platform-Version"
+        - $ref: "#/components/parameters/X-Plex-Device"
+        - $ref: "#/components/parameters/X-Plex-Model"
+        - $ref: "#/components/parameters/X-Plex-Device-Vendor"
+        - $ref: "#/components/parameters/X-Plex-Device-Name"
+        - $ref: "#/components/parameters/X-Plex-Marketplace"
+        - name: sectionId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MediaContainerWithMetadata"
   /library/sections/{sectionId}/categories:
     get:
       operationId: getCategories
@@ -10357,8 +10898,66 @@ paths:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithMetadata"
   /library/sections/{sectionId}/emptyTrash:
-    put:
+    get:
       operationId: emptyTrash
+      summary: Empty Trash
+      tags:
+        - Library
+      description: Permanently remove items from the trash for a library section.
+      security:
+        - token:
+            - admin
+      parameters:
+        - $ref: "#/components/parameters/accepts"
+        - $ref: "#/components/parameters/X-Plex-Client-Identifier"
+        - $ref: "#/components/parameters/X-Plex-Product"
+        - $ref: "#/components/parameters/X-Plex-Version"
+        - $ref: "#/components/parameters/X-Plex-Platform"
+        - $ref: "#/components/parameters/X-Plex-Platform-Version"
+        - $ref: "#/components/parameters/X-Plex-Device"
+        - $ref: "#/components/parameters/X-Plex-Model"
+        - $ref: "#/components/parameters/X-Plex-Device-Vendor"
+        - $ref: "#/components/parameters/X-Plex-Device-Name"
+        - $ref: "#/components/parameters/X-Plex-Marketplace"
+        - name: sectionId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+    post:
+      operationId: emptyTrashPost
+      summary: Empty Trash
+      tags:
+        - Library
+      description: Permanently remove items from the trash for a library section.
+      security:
+        - token:
+            - admin
+      parameters:
+        - $ref: "#/components/parameters/accepts"
+        - $ref: "#/components/parameters/X-Plex-Client-Identifier"
+        - $ref: "#/components/parameters/X-Plex-Product"
+        - $ref: "#/components/parameters/X-Plex-Version"
+        - $ref: "#/components/parameters/X-Plex-Platform"
+        - $ref: "#/components/parameters/X-Plex-Platform-Version"
+        - $ref: "#/components/parameters/X-Plex-Device"
+        - $ref: "#/components/parameters/X-Plex-Model"
+        - $ref: "#/components/parameters/X-Plex-Device-Vendor"
+        - $ref: "#/components/parameters/X-Plex-Device-Name"
+        - $ref: "#/components/parameters/X-Plex-Marketplace"
+        - name: sectionId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+    put:
+      operationId: emptyTrashPut
       summary: Empty section trash
       tags:
         - Library
@@ -10684,13 +11283,47 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithMetadata"
-  /library/sections/{sectionId}/onDeck:
+  /library/sections/{sectionId}/newest:
     get:
-      operationId: getOnDeck
-      summary: Get On Deck
+      operationId: getNewestForSection
+      summary: Get Newest for Section
       tags:
         - Library
-      description: Get On Deck items for a library section.
+      description: Get the newest additions for a specific library section.
+      security:
+        - token:
+            - admin
+      parameters:
+        - $ref: "#/components/parameters/accepts"
+        - $ref: "#/components/parameters/X-Plex-Client-Identifier"
+        - $ref: "#/components/parameters/X-Plex-Product"
+        - $ref: "#/components/parameters/X-Plex-Version"
+        - $ref: "#/components/parameters/X-Plex-Platform"
+        - $ref: "#/components/parameters/X-Plex-Platform-Version"
+        - $ref: "#/components/parameters/X-Plex-Device"
+        - $ref: "#/components/parameters/X-Plex-Model"
+        - $ref: "#/components/parameters/X-Plex-Device-Vendor"
+        - $ref: "#/components/parameters/X-Plex-Device-Name"
+        - $ref: "#/components/parameters/X-Plex-Marketplace"
+        - name: sectionId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MediaContainerWithMetadata"
+  /library/sections/{sectionId}/onDeck:
+    get:
+      operationId: getOnDeckForSection
+      summary: Get On Deck for Section
+      tags:
+        - Library
+      description: Get the On Deck items for a specific library section.
       parameters:
         - $ref: "#/components/parameters/accepts"
         - $ref: "#/components/parameters/X-Plex-Client-Identifier"
@@ -10715,6 +11348,65 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithMetadata"
+  /library/sections/{sectionId}/optimize:
+    get:
+      operationId: optimizeSection
+      summary: Optimize Section
+      tags:
+        - Library
+      description: Optimize the database for a specific library section.
+      security:
+        - token:
+            - admin
+      parameters:
+        - $ref: "#/components/parameters/accepts"
+        - $ref: "#/components/parameters/X-Plex-Client-Identifier"
+        - $ref: "#/components/parameters/X-Plex-Product"
+        - $ref: "#/components/parameters/X-Plex-Version"
+        - $ref: "#/components/parameters/X-Plex-Platform"
+        - $ref: "#/components/parameters/X-Plex-Platform-Version"
+        - $ref: "#/components/parameters/X-Plex-Device"
+        - $ref: "#/components/parameters/X-Plex-Model"
+        - $ref: "#/components/parameters/X-Plex-Device-Vendor"
+        - $ref: "#/components/parameters/X-Plex-Device-Name"
+        - $ref: "#/components/parameters/X-Plex-Marketplace"
+        - name: sectionId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+    post:
+      operationId: optimizeSectionPost
+      summary: Optimize Section
+      tags:
+        - Library
+      description: Optimize the database for a specific library section.
+      security:
+        - token:
+            - admin
+      parameters:
+        - $ref: "#/components/parameters/accepts"
+        - $ref: "#/components/parameters/X-Plex-Client-Identifier"
+        - $ref: "#/components/parameters/X-Plex-Product"
+        - $ref: "#/components/parameters/X-Plex-Version"
+        - $ref: "#/components/parameters/X-Plex-Platform"
+        - $ref: "#/components/parameters/X-Plex-Platform-Version"
+        - $ref: "#/components/parameters/X-Plex-Device"
+        - $ref: "#/components/parameters/X-Plex-Model"
+        - $ref: "#/components/parameters/X-Plex-Device-Vendor"
+        - $ref: "#/components/parameters/X-Plex-Device-Name"
+        - $ref: "#/components/parameters/X-Plex-Marketplace"
+        - name: sectionId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
   /library/sections/{sectionId}/prefs:
     get:
       operationId: getSectionPreferences
@@ -10791,8 +11483,8 @@ paths:
           $ref: "#/components/responses/200"
   /library/sections/{sectionId}/recentlyAdded:
     get:
-      operationId: getRecentlyAddedBySection
-      summary: Get Recently Added by Section
+      operationId: getRecentlyAddedForSection
+      summary: Get Recently Added for Section
       tags:
         - Library
       description: Get recently added items for a specific library section.
@@ -10851,12 +11543,42 @@ paths:
       responses:
         '200':
           $ref: "#/components/responses/200"
-    post:
+    get:
       operationId: refreshSection
-      summary: Refresh section
+      summary: Refresh Section
       tags:
         - Library
-      description: Start a refresh of this section
+      description: Trigger a metadata refresh for a library section.
+      security:
+        - token:
+            - admin
+      parameters:
+        - $ref: "#/components/parameters/accepts"
+        - $ref: "#/components/parameters/X-Plex-Client-Identifier"
+        - $ref: "#/components/parameters/X-Plex-Product"
+        - $ref: "#/components/parameters/X-Plex-Version"
+        - $ref: "#/components/parameters/X-Plex-Platform"
+        - $ref: "#/components/parameters/X-Plex-Platform-Version"
+        - $ref: "#/components/parameters/X-Plex-Device"
+        - $ref: "#/components/parameters/X-Plex-Model"
+        - $ref: "#/components/parameters/X-Plex-Device-Vendor"
+        - $ref: "#/components/parameters/X-Plex-Device-Name"
+        - $ref: "#/components/parameters/X-Plex-Marketplace"
+        - name: sectionId
+          description: Section identifier
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+    post:
+      operationId: refreshSectionPost
+      summary: Refresh Section
+      tags:
+        - Library
+      description: Trigger a metadata refresh for a library section.
       security:
         - token:
             - admin
@@ -10923,6 +11645,40 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithSorts"
+  /library/sections/{sectionId}/unwatched:
+    get:
+      operationId: getUnwatchedForSection
+      summary: Get Unwatched for Section
+      tags:
+        - Library
+      description: Get unwatched items for a specific library section.
+      security:
+        - token:
+            - admin
+      parameters:
+        - $ref: "#/components/parameters/accepts"
+        - $ref: "#/components/parameters/X-Plex-Client-Identifier"
+        - $ref: "#/components/parameters/X-Plex-Product"
+        - $ref: "#/components/parameters/X-Plex-Version"
+        - $ref: "#/components/parameters/X-Plex-Platform"
+        - $ref: "#/components/parameters/X-Plex-Platform-Version"
+        - $ref: "#/components/parameters/X-Plex-Device"
+        - $ref: "#/components/parameters/X-Plex-Model"
+        - $ref: "#/components/parameters/X-Plex-Device-Vendor"
+        - $ref: "#/components/parameters/X-Plex-Device-Name"
+        - $ref: "#/components/parameters/X-Plex-Marketplace"
+        - name: sectionId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MediaContainerWithMetadata"
   /library/streams/{streamId}/levels:
     get:
       operationId: getStreamLevels
