@@ -4,6 +4,8 @@ Extract inline schemas from plex-api-spec.yaml into reusable components.
 Run from repo root: python scripts/extract_schemas.py
 """
 
+import os
+import sys
 import yaml
 from copy import deepcopy
 
@@ -11,8 +13,15 @@ SPEC_PATH = "plex-api-spec.yaml"
 
 
 def load_spec():
-    with open(SPEC_PATH, "r") as f:
-        return yaml.safe_load(f)
+    if not os.path.exists(SPEC_PATH):
+        print(f"Error: Specification file not found at {SPEC_PATH}", file=sys.stderr)
+        sys.exit(1)
+    try:
+        with open(SPEC_PATH) as f:
+            return yaml.safe_load(f)
+    except yaml.YAMLError as e:
+        print(f"Error: Failed to parse YAML in {SPEC_PATH}: {e}", file=sys.stderr)
+        sys.exit(1)
 
 
 def save_spec(spec):
@@ -20,114 +29,100 @@ def save_spec(spec):
         yaml.dump(spec, f, default_flow_style=False, sort_keys=False, allow_unicode=True)
 
 
+def _safe_extract(spec, path_keys, schema_name, item_key="items"):
+    """Safely extract an inline schema from a nested path."""
+    try:
+        current = spec
+        for key in path_keys:
+            current = current[key]
+        spec["components"]["schemas"][schema_name] = deepcopy(current)
+        # Replace with $ref
+        parent = spec
+        for key in path_keys[:-1]:
+            parent = parent[key]
+        parent[path_keys[-1]] = {"$ref": f"#/components/schemas/{schema_name}"}
+        print(f"Extracted {schema_name} schema")
+    except KeyError as e:
+        print(f"Warning: Could not extract {schema_name} schema - missing key: {e}", file=sys.stderr)
+
+
 def extract_activity(spec):
     """Extract Activity inline schema from /activities GET 200 response."""
-    items = spec["paths"]["/activities"]["get"]["responses"]["200"]["content"][
-        "application/json"
-    ]["schema"]["properties"]["MediaContainer"]["allOf"][0]["properties"]["Activity"][
-        "items"
-    ]
-    spec["components"]["schemas"]["Activity"] = items
-    spec["paths"]["/activities"]["get"]["responses"]["200"]["content"][
-        "application/json"
-    ]["schema"]["properties"]["MediaContainer"]["allOf"][0]["properties"]["Activity"][
-        "items"
-    ] = {"$ref": "#/components/schemas/Activity"}
-    print("Extracted Activity schema")
+    _safe_extract(
+        spec,
+        ["paths", "/activities", "get", "responses", "200", "content",
+         "application/json", "schema", "properties", "MediaContainer",
+         "allOf", 0, "properties", "Activity", "items"],
+        "Activity",
+    )
 
 
 def extract_butler_task(spec):
     """Extract ButlerTask inline schema from /butler GET 200 response."""
-    items = spec["paths"]["/butler"]["get"]["responses"]["200"]["content"][
-        "application/json"
-    ]["schema"]["properties"]["ButlerTasks"]["properties"]["ButlerTask"]["items"]
-    spec["components"]["schemas"]["ButlerTask"] = items
-    spec["paths"]["/butler"]["get"]["responses"]["200"]["content"][
-        "application/json"
-    ]["schema"]["properties"]["ButlerTasks"]["properties"]["ButlerTask"]["items"] = {
-        "$ref": "#/components/schemas/ButlerTask"
-    }
-    print("Extracted ButlerTask schema")
+    _safe_extract(
+        spec,
+        ["paths", "/butler", "get", "responses", "200", "content",
+         "application/json", "schema", "properties", "ButlerTasks",
+         "properties", "ButlerTask", "items"],
+        "ButlerTask",
+    )
 
 
 def extract_updater_release(spec):
     """Extract Release inline schema from /updater/status GET 200 response."""
-    items = spec["paths"]["/updater/status"]["get"]["responses"]["200"]["content"][
-        "application/json"
-    ]["schema"]["properties"]["MediaContainer"]["allOf"][0]["properties"]["Release"][
-        "items"
-    ]
-    spec["components"]["schemas"]["UpdaterRelease"] = items
-    spec["paths"]["/updater/status"]["get"]["responses"]["200"]["content"][
-        "application/json"
-    ]["schema"]["properties"]["MediaContainer"]["allOf"][0]["properties"]["Release"][
-        "items"
-    ] = {"$ref": "#/components/schemas/UpdaterRelease"}
-    print("Extracted UpdaterRelease schema")
+    _safe_extract(
+        spec,
+        ["paths", "/updater/status", "get", "responses", "200", "content",
+         "application/json", "schema", "properties", "MediaContainer",
+         "allOf", 0, "properties", "Release", "items"],
+        "UpdaterRelease",
+    )
 
 
 def extract_download_queue(spec):
     """Extract DownloadQueue inline schema from POST /downloadQueue 200 response."""
-    schema = spec["paths"]["/downloadQueue"]["post"]["responses"]["200"]["content"][
-        "application/json"
-    ]["schema"]["properties"]["MediaContainer"]["allOf"][1]["properties"]["DownloadQueue"]
-    spec["components"]["schemas"]["DownloadQueue"] = schema
-    spec["paths"]["/downloadQueue"]["post"]["responses"]["200"]["content"][
-        "application/json"
-    ]["schema"]["properties"]["MediaContainer"]["allOf"][1]["properties"][
-        "DownloadQueue"
-    ] = {"$ref": "#/components/schemas/DownloadQueue"}
-    print("Extracted DownloadQueue schema")
+    _safe_extract(
+        spec,
+        ["paths", "/downloadQueue", "post", "responses", "200", "content",
+         "application/json", "schema", "properties", "MediaContainer",
+         "allOf", 1, "properties", "DownloadQueue"],
+        "DownloadQueue",
+        item_key=None,
+    )
 
 
 def extract_download_queue_item(spec):
     """Extract DownloadQueueItem inline schema from GET /downloadQueue/{queueId}/items."""
-    items = spec["paths"]["/downloadQueue/{queueId}/items"]["get"]["responses"]["200"][
-        "content"
-    ]["application/json"]["schema"]["properties"]["MediaContainer"]["allOf"][1][
-        "properties"
-    ]["DownloadQueueItem"]["items"]
-    spec["components"]["schemas"]["DownloadQueueItem"] = items
-    spec["paths"]["/downloadQueue/{queueId}/items"]["get"]["responses"]["200"][
-        "content"
-    ]["application/json"]["schema"]["properties"]["MediaContainer"]["allOf"][1][
-        "properties"
-    ]["DownloadQueueItem"]["items"] = {"$ref": "#/components/schemas/DownloadQueueItem"}
-    print("Extracted DownloadQueueItem schema")
+    _safe_extract(
+        spec,
+        ["paths", "/downloadQueue/{queueId}/items", "get", "responses", "200",
+         "content", "application/json", "schema", "properties", "MediaContainer",
+         "allOf", 1, "properties", "DownloadQueueItem", "items"],
+        "DownloadQueueItem",
+    )
 
 
 def extract_media_grabber(spec):
     """Extract MediaGrabber inline schema from GET /media/grabbers."""
-    items = spec["paths"]["/media/grabbers"]["get"]["responses"]["200"]["content"][
-        "application/json"
-    ]["schema"]["properties"]["MediaContainer"]["allOf"][1]["properties"][
-        "MediaGrabber"
-    ]["items"]
-    spec["components"]["schemas"]["MediaGrabber"] = items
-    spec["paths"]["/media/grabbers"]["get"]["responses"]["200"]["content"][
-        "application/json"
-    ]["schema"]["properties"]["MediaContainer"]["allOf"][1]["properties"][
-        "MediaGrabber"
-    ]["items"] = {"$ref": "#/components/schemas/MediaGrabber"}
-    print("Extracted MediaGrabber schema")
+    _safe_extract(
+        spec,
+        ["paths", "/media/grabbers", "get", "responses", "200", "content",
+         "application/json", "schema", "properties", "MediaContainer",
+         "allOf", 1, "properties", "MediaGrabber", "items"],
+        "MediaGrabber",
+    )
 
 
 def extract_device_channel(spec):
     """Extract DeviceChannel inline schema from GET /media/grabbers/devices/{deviceId}/channels."""
-    items = spec["paths"]["/media/grabbers/devices/{deviceId}/channels"]["get"][
-        "responses"
-    ]["200"]["content"]["application/json"]["schema"]["properties"]["MediaContainer"][
-        "allOf"
-    ][1]["properties"]["DeviceChannel"]["items"]
-    spec["components"]["schemas"]["DeviceChannel"] = items
-    spec["paths"]["/media/grabbers/devices/{deviceId}/channels"]["get"]["responses"][
-        "200"
-    ]["content"]["application/json"]["schema"]["properties"]["MediaContainer"][
-        "allOf"
-    ][1]["properties"]["DeviceChannel"]["items"] = {
-        "$ref": "#/components/schemas/DeviceChannel"
-    }
-    print("Extracted DeviceChannel schema")
+    _safe_extract(
+        spec,
+        ["paths", "/media/grabbers/devices/{deviceId}/channels", "get",
+         "responses", "200", "content", "application/json", "schema",
+         "properties", "MediaContainer", "allOf", 1, "properties",
+         "DeviceChannel", "items"],
+        "DeviceChannel",
+    )
 
 
 def main():

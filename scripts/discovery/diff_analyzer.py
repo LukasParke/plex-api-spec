@@ -62,7 +62,12 @@ def extract_traffic_paths(traffic_path):
             line = line.strip()
             if not line:
                 continue
-            entry = json.loads(line)
+            try:
+                entry = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if "path" not in entry or "method" not in entry:
+                continue
             raw_path = urlparse(entry["path"]).path
             norm = normalize_path(raw_path)
             method = entry["method"].upper()
@@ -76,7 +81,7 @@ def extract_traffic_paths(traffic_path):
     return traffic_set, path_methods, path_params
 
 
-def build_report(spec_set, traffic_set, path_methods, path_params, spec):
+def build_report(spec_set, traffic_set, path_params, spec):
     missing_in_spec = traffic_set - spec_set
     # Also check for methods on known paths that are missing
     missing_methods = []
@@ -141,7 +146,7 @@ def main():
     spec_set = extract_spec_paths(spec)
     traffic_set, path_methods, path_params = extract_traffic_paths(TRAFFIC_PATH)
 
-    report = build_report(spec_set, traffic_set, path_methods, path_params, spec)
+    report = build_report(spec_set, traffic_set, path_params, spec)
 
     with open(REPORT_PATH, "w") as f:
         json.dump(report, f, indent=2)

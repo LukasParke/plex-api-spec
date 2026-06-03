@@ -10,8 +10,17 @@ SPEC_PATH = "plex-api-spec.yaml"
 
 
 def load_spec():
-    with open(SPEC_PATH, "r") as f:
-        return yaml.safe_load(f)
+    import os
+    import sys
+    if not os.path.exists(SPEC_PATH):
+        print(f"Error: Specification file not found at {SPEC_PATH}", file=sys.stderr)
+        sys.exit(1)
+    try:
+        with open(SPEC_PATH) as f:
+            return yaml.safe_load(f)
+    except yaml.YAMLError as e:
+        print(f"Error: Failed to parse YAML in {SPEC_PATH}: {e}", file=sys.stderr)
+        sys.exit(1)
 
 
 def save_spec(spec):

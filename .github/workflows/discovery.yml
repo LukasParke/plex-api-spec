@@ -5,15 +5,29 @@ on:
     - cron: '0 6 * * *'
   workflow_dispatch:
 
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: nightly-discovery
+  cancel-in-progress: true
+
 jobs:
   discover:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Clone Arbiter
+        run: |
+          git clone https://github.com/LukasParke/arbiter.git ../arbiter
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@8d9ed9ac5c53483de85588cdf95a591a75ab9f55 # v5.5.0
         with:
           python-version: '3.12'
 
@@ -23,7 +37,7 @@ jobs:
           pip install pyyaml
 
       - name: Set up Docker Compose
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2320ee5c88db75466b73 # v3.10.0
 
       - name: Run discovery pipeline
         run: |
@@ -33,13 +47,15 @@ jobs:
           PLEX_CLAIM_TOKEN: ${{ secrets.PLEX_CLAIM_TOKEN }}
 
       - name: Upload diff report
-        uses: actions/upload-artifact@v4
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: diff-report
           path: /tmp/diff_report.json
 
       - name: Upload traffic capture
-        uses: actions/upload-artifact@v4
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: traffic-capture
           path: /tmp/traffic.jsonl

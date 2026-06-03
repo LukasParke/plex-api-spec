@@ -128,7 +128,7 @@ def run(base: str, token: str = None):
 
     print(f"[TRAFFIC] Hitting {len(endpoints)} endpoints via {base} ...", file=sys.stderr)
     for method, path in endpoints:
-        status, body = fetch(base, path, method=method, headers=headers)
+        status, _body = fetch(base, path, method=method, headers=headers)
         indicator = "✓" if status == 200 else "○" if status in (401, 403) else "✗"
         print(f"  {indicator} {method} {path} -> {status}", file=sys.stderr)
         time.sleep(0.1)
