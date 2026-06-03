@@ -16371,6 +16371,14 @@ components:
           type: string
         channelVcn:
           type: string
+        drm:
+          description: Whether the channel requires DRM.
+          type: boolean
+          example: false
+        favorite:
+          description: Whether the channel is marked as a favorite.
+          type: boolean
+          example: true
         hd:
           type: boolean
         identifier:
@@ -16379,6 +16387,14 @@ components:
           type: string
         language:
           type: string
+        signalQuality:
+          description: Signal quality percentage (0-100).
+          type: integer
+          example: 85
+        signalStrength:
+          description: Signal strength percentage (0-100).
+          type: integer
+          example: 90
         thumb:
           type: string
     ChannelMapping:
@@ -16404,6 +16420,46 @@ components:
                   type: array
                   items:
                     $ref: "#/components/schemas/Channel"
+    Collection:
+      description: A collection of related media items.
+      type: object
+      properties:
+        artBlurHash:
+          description: Blur hash for collection art.
+          type: string
+          example: LhE3*HRjR*a#ogWBofj[bbf6ofa#
+        collectionFilterBasedOnUser:
+          description: Whether the smart collection filter is based on the current user.
+          type: boolean
+          example: false
+        collectionMode:
+          description: Display mode for the collection.
+          type: string
+          enum:
+            - default
+            - hideItems
+            - showItems
+          example: default
+        collectionPublished:
+          description: Whether the collection is published to Plex Discover.
+          type: boolean
+          example: true
+        collectionSort:
+          description: Sort order for items in the collection.
+          type: string
+          example: addedAt:desc
+        lastRatedAt:
+          description: Timestamp of the last user rating.
+          type: integer
+          example: 1704067200
+        thumbBlurHash:
+          description: Blur hash for collection thumbnail.
+          type: string
+          example: LhE3*HRjR*a#ogWBofj[bbf6ofa#
+        userRating:
+          description: User star rating (0-10).
+          type: number
+          example: 8.5
     Connection:
       type: object
       properties:
@@ -16466,20 +16522,48 @@ components:
     Device:
       type: object
       properties:
+        title:
+          description: Display title for the device.
+          type: string
+          example: Living Room Tuner
         ChannelMapping:
           type: array
           items:
             $ref: "#/components/schemas/ChannelMapping"
+        deviceIdentifier:
+          description: Distinct hardware identifier for the device.
+          type: string
+          example: HDHomeRun-1234ABCD
+        enabled:
+          description: Whether the device is enabled.
+          type: boolean
+          example: true
+        id:
+          description: Unique device ID.
+          type: integer
+          example: 42
         key:
           type: string
         lastSeenAt:
           type: integer
+        lineup:
+          description: EPG lineup association.
+          type: string
+          example: OTA
+        lineupType:
+          description: Type of EPG lineup.
+          type: string
+          example: Antenna
         make:
           type: string
         model:
           type: string
         modelNumber:
           type: string
+        name:
+          description: Human-readable device name.
+          type: string
+          example: HDHomeRun CONNECT
         protocol:
           type: string
         sources:
@@ -16488,6 +16572,14 @@ components:
           type: string
         status:
           type: string
+        thumb:
+          description: URL to the device thumbnail image.
+          type: string
+          example: https://plex.tv/devices/42/thumb
+        thumbVersion:
+          description: Version of the device thumbnail.
+          type: integer
+          example: 1
         tuners:
           type: string
         uri:
@@ -16897,6 +16989,14 @@ components:
         type:
           description: The type of this object (`lineup` in this case)
           type: string
+        identifier:
+          description: Lineup identifier.
+          type: string
+          example: OTA
+        key:
+          description: API key for this lineup.
+          type: string
+          example: /tv.plex.lineup.ota
         lineupType:
           description: |-
             - `-1`: N/A
@@ -17046,6 +17146,14 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Part"
+        selected:
+          description: Whether this media version is selected for playback.
+          type: boolean
+          example: true
+        uuid:
+          description: Unique identifier for this media instance.
+          type: string
+          example: 5d776d057ae4e7001f65e7d0
         videoCodec:
           type: string
           example: h264
@@ -17341,6 +17449,39 @@ components:
                             description: If this is a special playlist, this returns its type (e.g. favorites).
                             type: string
                       - $ref: "#/components/schemas/Metadata"
+    MediaContainerWithPlayQueue:
+      description: A media container representing a play queue.
+      allOf:
+        - $ref: "#/components/schemas/MediaContainer"
+        - type: object
+          properties:
+            playQueueID:
+              type: integer
+              example: 42
+            playQueueLastAddedItemID:
+              type: integer
+              example: 123
+            playQueueSelectedItemID:
+              type: integer
+              example: 1
+            playQueueSelectedItemOffset:
+              type: integer
+              example: 0
+            playQueueSelectedMetadataItemID:
+              type: integer
+              example: 456
+            playQueueShuffled:
+              type: boolean
+              example: false
+            playQueueSourceURI:
+              type: string
+              example: library://abc123/item/%2Flibrary%2Fmetadata%2F1
+            playQueueTotalCount:
+              type: integer
+              example: 50
+            playQueueVersion:
+              type: integer
+              example: 3
     MediaContainerWithSettings:
       type: object
       properties:
@@ -17613,6 +17754,10 @@ components:
           description: When present, the URL for the background artwork for the item.
           type: string
           example: /library/metadata/58683/art/1703239236
+        artBlurHash:
+          description: Blur hash for background art.
+          type: string
+          example: LhE3*HRjR*a#ogWBofj[bbf6ofa#
         audienceRating:
           description: Some rating systems separate reviewer ratings from audience ratings
           type: number
@@ -17656,6 +17801,14 @@ components:
           description: When present, the duration for the item, in units of milliseconds.
           type: integer
           format: int32
+        editionTitle:
+          description: Edition string (e.g. "Director's Cut").
+          type: string
+          example: Director's Cut
+        enableCreditsMarkerGeneration:
+          description: Whether credits marker generation is enabled for this item.
+          type: boolean
+          example: true
         Filter:
           description: Typically only seen in metadata at a library's top level
           type: array
@@ -17730,6 +17883,14 @@ components:
         key:
           description: The key at which the item's details can be fetched.  In many cases a metadata item may be passed without all the details (such as in a hub) and this key corresponds to the endpoint to fetch additional details.
           type: string
+        languageOverride:
+          description: Per-item language override.
+          type: string
+          example: en
+        lastRatedAt:
+          description: Timestamp of the last user rating.
+          type: integer
+          example: 1704067200
         lastViewedAt:
           allOf:
             - $ref: "#/components/schemas/PlexDateTime"
@@ -17742,6 +17903,10 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Media"
+        musicAnalysisVersion:
+          description: Analysis version for music items.
+          type: integer
+          example: 1
         originallyAvailableAt:
           description: When present, in the format YYYY-MM-DD [HH:MM:SS] (the hours/minutes/seconds part is not always present). The air date, or a higher resolution release date for an item, depending on type. For example, episodes usually have air date like 1979-08-10 (we don't use epoch seconds because media existed prior to 1970). In some cases, recorded over-the-air content has higher resolution air date which includes a time component. Albums and movies may have day-resolution release dates as well.
           type: string
@@ -17773,6 +17938,10 @@ components:
         parentTitle:
           description: The `title` of the parent
           type: string
+        playlistItemID:
+          description: Item ID within a playlist.
+          type: integer
+          example: 42
         primaryExtraKey:
           description: Indicates that the item has a primary extra; for a movie, this is a trailer, and for a music track it is a music video. The URL points to the metadata details endpoint for the item.
           type: string
@@ -17818,6 +17987,10 @@ components:
               enum:
                 - '0'
                 - '1'
+        skipCount:
+          description: Number of times this track has been skipped.
+          type: integer
+          example: 3
         skipParent:
           description: When present on an episode or track item, indicates parent should be skipped in favor of grandparent (show).
           oneOf:
@@ -17826,11 +17999,19 @@ components:
               enum:
                 - '0'
                 - '1'
+        slug:
+          description: URL-friendly slug for the item.
+          type: string
+          example: the-matrix
         Sort:
           description: Typically only seen in metadata at a library's top level
           type: array
           items:
             $ref: "#/components/schemas/Sort"
+        sourceURI:
+          description: Remote or shared server item URI.
+          type: string
+          example: provider://tv.plex.provider.vod/library/metadata/5d776d057ae4e7001f65e7d0
         studio:
           description: When present, the studio or label which produced an item (e.g. movie studio for movies, record label for albums).
           type: string
@@ -17851,12 +18032,20 @@ components:
           description: When present, the URL for the poster or thumbnail for the item. When available for types like movie, it will be the poster graphic, but fall-back to the extracted media thumbnail.
           type: string
           example: /library/metadata/58683/thumb/1703239236
+        thumbBlurHash:
+          description: Blur hash for thumbnail.
+          type: string
+          example: LhE3*HRjR*a#ogWBofj[bbf6ofa#
         titleSort:
           description: Whene present, this is the string used for sorting the item. It's usually the title with any leading articles removed (e.g. “Simpsons”).
           type: string
         updatedAt:
           description: In units of seconds since the epoch, returns the time at which the item was last changed (e.g. had its metadata updated).
           type: integer
+        useOriginalTitle:
+          description: Whether to display the original title.
+          type: boolean
+          example: false
         userRating:
           description: When the user has rated an item, this contains the user rating
           type: number
@@ -17929,6 +18118,10 @@ components:
           description: The container of the media file, such as `mp4` or `mkv`
           type: string
           example: mov
+        deepAnalysisVersion:
+          description: Deep analysis version for this part.
+          type: integer
+          example: 2
         duration:
           description: The duration of the media item, in milliseconds
           type: integer
@@ -17959,6 +18152,18 @@ components:
         optimizedForStreaming:
           type: boolean
           example: false
+        packetLength:
+          description: RTP packet length for streaming.
+          type: integer
+          example: 188
+        protocol:
+          description: Streaming protocol (e.g. dash, hls, direct).
+          type: string
+          example: dash
+        requiredBandwidths:
+          description: Comma-separated list of bandwidth requirements.
+          type: string
+          example: 10000,15000,20000
         size:
           description: The size of the media, in bytes
           type: integer
@@ -17968,6 +18173,14 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Stream"
+        syncItemId:
+          description: Mobile sync item association ID.
+          type: integer
+          example: 12345
+        syncState:
+          description: Sync state (e.g. pending, downloaded, processing).
+          type: string
+          example: pending
         videoProfile:
           type: string
           example: main
@@ -18273,6 +18486,60 @@ components:
         - dnsRebindingProtection
         - natLoopbackSupported
         - connections
+    Provider:
+      description: A media provider registered with the PMS.
+      type: object
+      properties:
+        title:
+          description: Human-readable provider title.
+          type: string
+          example: Plex VOD
+        identifier:
+          description: Unique provider identifier.
+          type: string
+          example: tv.plex.provider.vod
+        Protocol:
+          description: Protocol version used by the provider.
+          type: string
+          example: '1.0'
+        types:
+          description: Content types provided.
+          type: string
+          example: movie,show
+    ProviderFeature:
+      description: A feature supported by a media provider.
+      type: object
+      properties:
+        title:
+          description: Human-readable feature title.
+          type: string
+          example: Search
+        type:
+          description: Feature type.
+          type: string
+          example: content
+        key:
+          description: Feature key identifier.
+          type: string
+          enum:
+            - search
+            - metadata
+            - content
+            - match
+            - manage
+            - timeline
+            - rate
+            - playqueue
+            - playlist
+            - subscribe
+            - promoted
+            - continuewatching
+            - collection
+            - actions
+            - imagetranscoder
+            - queryParser
+            - grid
+          example: search
     ReachabilityNotification:
       description: Server reachability status change notification
       type: object
@@ -18429,6 +18696,10 @@ components:
       description: Information about the playback session
       type: object
       properties:
+        title:
+          description: Title of the media being played.
+          type: string
+          example: The Matrix
         bandwidth:
           description: The bandwidth used by this client's playback in kbps
           type: integer
@@ -18441,6 +18712,18 @@ components:
           enum:
             - lan
             - wan
+        sessionKey:
+          description: Unique session key for this playback session.
+          type: string
+          example: abc123
+        userID:
+          description: ID of the user owning this session.
+          type: integer
+          example: 12345
+        uuid:
+          description: UUID of the playback session.
+          type: string
+          example: 5d776d057ae4e7001f65e7d0
     Setting:
       description: A configuration setting or preference
       type: object
@@ -18543,6 +18826,18 @@ components:
           description: Indicates if this stream is default.
           type: boolean
           example: true
+        albumGain:
+          description: ReplayGain album gain in dB.
+          type: number
+          example: -8.5
+        albumPeak:
+          description: ReplayGain album peak amplitude.
+          type: number
+          example: 0.95
+        albumRange:
+          description: ReplayGain album dynamic range in dB.
+          type: number
+          example: 12.3
         audioChannelLayout:
           description: Audio channel layout.
           type: string
@@ -18557,6 +18852,13 @@ components:
           type: integer
           format: int32
           example: 24743
+        bitrateMode:
+          description: Audio bitrate mode (cbr or vbr).
+          type: string
+          enum:
+            - cbr
+            - vbr
+          example: vbr
         canAutoSync:
           description: Indicates if the stream can auto-sync.
           type: boolean
@@ -18659,6 +18961,10 @@ components:
         embeddedInVideo:
           type: string
           example: progressive
+        endRamp:
+          description: Loudness ramp end type.
+          type: string
+          example: none
         extendedDisplayTitle:
           description: Extended display title for the stream.
           type: string
@@ -18671,6 +18977,10 @@ components:
           type: number
           format: float
           example: 23.976
+        gain:
+          description: Track replay gain in dB.
+          type: number
+          example: -6.2
         hasScalingMatrix:
           type: boolean
           example: false
@@ -18718,14 +19028,42 @@ components:
           type: integer
           format: int32
           example: 150
+        loudness:
+          description: Integrated loudness in LUFS.
+          type: number
+          example: -14
+        lra:
+          description: Loudness range in LU.
+          type: number
+          example: 8.5
+        minLines:
+          description: Minimum lines in the lyric file.
+          type: integer
+          example: 10
         original:
           description: Indicates if this is the original stream.
+          type: boolean
+          example: true
+        peak:
+          description: Track peak amplitude.
+          type: number
+          example: 0.98
+        perfectMatch:
+          description: Whether the subtitle is an exact match.
           type: boolean
           example: true
         profile:
           description: Video profile.
           type: string
           example: main 10
+        provider:
+          description: Lyric or subtitle provider name.
+          type: string
+          example: OpenSubtitles
+        providerTitle:
+          description: Subtitle provider display name.
+          type: string
+          example: OpenSubtitles.org
         refFrames:
           description: Number of reference frames.
           type: integer
@@ -18739,10 +19077,22 @@ components:
         scanType:
           type: string
           example: progressive
+        score:
+          description: Subtitle match confidence score (0-100).
+          type: number
+          example: 95.5
         selected:
           description: Indicates if this stream is selected (applicable for audio streams).
           type: boolean
           example: true
+        sourceKey:
+          description: Source identifier for the subtitle.
+          type: string
+          example: opensubtitles
+        startRamp:
+          description: Loudness ramp start type.
+          type: string
+          example: none
         streamIdentifier:
           type: integer
           format: int32
@@ -18765,6 +19115,22 @@ components:
                   - VIDEO = 1 (Video stream)
                   - AUDIO = 2 (Audio stream)
                   - SUBTITLE = 3 (Subtitle stream)
+        timed:
+          description: Whether lyrics are timestamped.
+          type: boolean
+          example: true
+        transient:
+          description: Whether the subtitle is temporary or downloaded.
+          type: boolean
+          example: false
+        userID:
+          description: ID of the user who added the subtitle.
+          type: integer
+          example: 12345
+        visualImpaired:
+          description: Whether this audio track is an audio description track.
+          type: boolean
+          example: false
         width:
           description: Width of the video stream.
           type: integer
@@ -19668,3 +20034,65 @@ components:
         - defaultSubtitleForced
         - watchedIndicator
         - mediaReviewsVisibility
+    WebhookPayload:
+      description: Payload delivered by Plex to configured webhook URLs.
+      type: object
+      properties:
+        Account:
+          type: object
+          properties:
+            title:
+              type: string
+              example: Plex User
+            id:
+              type: integer
+              example: 1
+            thumb:
+              type: string
+              example: https://plex.tv/users/1/thumb
+        event:
+          description: Event type that triggered the webhook.
+          type: string
+          enum:
+            - media.play
+            - media.pause
+            - media.resume
+            - media.stop
+            - media.scrobble
+            - media.rate
+            - library.new
+            - library.on.deck
+          example: media.play
+        Metadata:
+          description: The media item associated with the event. Shape varies by event type.
+          type: object
+        owner:
+          type: boolean
+          example: true
+        Player:
+          type: object
+          properties:
+            title:
+              type: string
+              example: Chrome
+            local:
+              type: boolean
+              example: true
+            publicAddress:
+              type: string
+              example: 192.168.1.100
+            uuid:
+              type: string
+              example: player-uuid-123
+        Server:
+          type: object
+          properties:
+            title:
+              type: string
+              example: My Server
+            uuid:
+              type: string
+              example: 5d776d057ae4e7001f65e7d0
+        user:
+          type: boolean
+          example: true
