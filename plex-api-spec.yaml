@@ -254,7 +254,14 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/MediaContainerWithDirectory"
+                allOf:
+                  - $ref: "#/components/schemas/ServerConfiguration"
+                  - type: object
+                    properties:
+                      Directory:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Directory"
   /:/eventsource/notifications:
     get:
       operationId: getNotifications
@@ -635,6 +642,26 @@ paths:
           schema:
             type: integer
           example: 1024
+        - name: containerKey
+          description: Groups timeline reports (e.g. /playQueues/123).
+          in: query
+          schema:
+            type: string
+        - name: guid
+          description: Global unique identifier for the item.
+          in: query
+          schema:
+            type: string
+        - name: playQueueID
+          description: Identifies the play queue itself (distinct from playQueueItemID).
+          in: query
+          schema:
+            type: integer
+        - name: url
+          description: Alternative to key/ratingKey (legacy).
+          in: query
+          schema:
+            type: string
         - name: X-Plex-Client-Identifier
           description: Unique per client.
           in: header
@@ -667,6 +694,9 @@ paths:
                                 type: array
                                 items:
                                   $ref: "#/components/schemas/Bandwidth"
+                          playQueueID:
+                            description: The play queue ID when playback originates from a queue.
+                            type: integer
                           terminationCode:
                             description: A code describing why the session was terminated by the server.
                             type: integer
@@ -938,6 +968,81 @@ paths:
                             type: array
                             items:
                               $ref: "#/components/schemas/Activity"
+  /api/resources:
+    get:
+      operationId: getLegacyResources
+      summary: Get Legacy Resources
+      tags:
+        - Users
+      description: Get legacy published server connections (XML).
+      servers:
+        - url: https://plex.tv/api
+      responses:
+        '200':
+          description: OK
+          content:
+            application/xml:
+              schema:
+                type: object
+  /api/users/:
+    get:
+      operationId: getLegacyUsers
+      summary: Get Legacy Users
+      tags:
+        - Users
+      description: Get legacy friends list (XML).
+      servers:
+        - url: https://plex.tv/api
+      responses:
+        '200':
+          description: OK
+          content:
+            application/xml:
+              schema:
+                type: object
+  /api/v2/user/webhooks:
+    get:
+      operationId: getUserWebhooks
+      summary: User Webhooks
+      tags:
+        - General
+      description: List webhook URLs for the logged-in user.
+      servers:
+        - url: https://plex.tv/api/v2
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WebhookPayload"
+    post:
+      operationId: addUserWebhook
+      summary: Add User Webhook
+      tags:
+        - General
+      description: Add a webhook URL for the logged-in user.
+      servers:
+        - url: https://plex.tv/api/v2
+      parameters:
+        - $ref: "#/components/parameters/accepts"
+        - $ref: "#/components/parameters/X-Plex-Client-Identifier"
+        - $ref: "#/components/parameters/X-Plex-Product"
+        - $ref: "#/components/parameters/X-Plex-Version"
+        - $ref: "#/components/parameters/X-Plex-Platform"
+        - $ref: "#/components/parameters/X-Plex-Platform-Version"
+        - $ref: "#/components/parameters/X-Plex-Device"
+        - $ref: "#/components/parameters/X-Plex-Model"
+        - $ref: "#/components/parameters/X-Plex-Device-Vendor"
+        - $ref: "#/components/parameters/X-Plex-Device-Name"
+        - $ref: "#/components/parameters/X-Plex-Marketplace"
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /auth/jwk:
     post:
       operationId: registerDeviceJWK
@@ -1351,6 +1456,22 @@ paths:
                             type: array
                             items:
                               $ref: "#/components/schemas/DownloadQueue"
+  /features:
+    get:
+      operationId: getFeatures
+      summary: Get Features
+      tags:
+        - Authentication
+      description: Get Plex Pass feature flags for the logged-in user.
+      servers:
+        - url: https://plex.tv/api/v2
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
   /friends:
     get:
       operationId: getFriends
@@ -1433,6 +1554,18 @@ paths:
           $ref: "#/components/responses/400"
         '401':
           $ref: "#/components/responses/401"
+  /home:
+    get:
+      operationId: getHome
+      summary: Get Home
+      tags:
+        - Users
+      description: Get Plex Home user list.
+      servers:
+        - url: https://plex.tv/api/v2
+      responses:
+        '200':
+          description: OK
   /home/users:
     get:
       operationId: getHomeUsers
@@ -1866,8 +1999,8 @@ paths:
                         type: string
   /ip:
     get:
-      operationId: getPublicIP
-      summary: Get Public IP
+      operationId: getIP
+      summary: Get IP
       tags:
         - General
       description: Get the public IP address detected by Plex.
@@ -1896,6 +2029,23 @@ paths:
           $ref: "#/components/responses/400"
         '401':
           $ref: "#/components/responses/401"
+  /library:
+    get:
+      operationId: getRootLibrary
+      summary: Get Root Library
+      tags:
+        - Library
+      description: Get the root library object.
+      security:
+        - token:
+            - admin
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MediaContainerWithDirectory"
   /library/all:
     get:
       operationId: getLibraryItems
@@ -2365,6 +2515,23 @@ paths:
           $ref: "#/components/responses/400"
         '401':
           $ref: "#/components/responses/401"
+  /library/sections/:
+    get:
+      operationId: getLibrarySectionsFallback
+      summary: Get Library Sections (Fallback)
+      tags:
+        - Library
+      description: Fallback for non-owners to list library sections.
+      security:
+        - token:
+            - admin
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MediaContainerWithDirectory"
   /library/sections/all:
     get:
       operationId: getSections
@@ -2673,6 +2840,17 @@ paths:
       tags:
         - DVRs
       description: Get the list of all available DVRs
+      parameters:
+        - name: uuid
+          description: Filter by DVR UUID.
+          in: query
+          schema:
+            type: string
+        - name: lineup
+          description: Filter by lineup.
+          in: query
+          schema:
+            type: string
       responses:
         '200':
           description: OK
@@ -2887,6 +3065,19 @@ paths:
                             type: array
                             items:
                               $ref: "#/components/schemas/EPGCountry"
+  /livetv/epg/guide:
+    get:
+      operationId: getEPGGuide
+      summary: Get EPG Guide
+      tags:
+        - EPG
+      description: Fetch the global electronic program guide.
+      security:
+        - token:
+            - admin
+      responses:
+        '200':
+          description: OK
   /livetv/epg/languages:
     get:
       operationId: getAllLanguages
@@ -3079,6 +3270,17 @@ paths:
       tags:
         - Live TV
       description: Get all livetv sessions and metadata
+      parameters:
+        - name: dvrId
+          description: Filter by DVR ID.
+          in: query
+          schema:
+            type: integer
+        - name: channel
+          description: Filter by channel ID.
+          in: query
+          schema:
+            type: integer
       responses:
         '200':
           description: OK
@@ -3320,7 +3522,7 @@ paths:
         '400':
           $ref: "#/components/responses/400"
   /media/grabbers/devices/discover:
-    post:
+    get:
       operationId: discoverDevices
       summary: Tell grabbers to discover devices
       tags:
@@ -3329,6 +3531,21 @@ paths:
       security:
         - token:
             - admin
+      parameters:
+        - name: protocol
+          description: Protocol to filter discovery.
+          in: query
+          schema:
+            type: string
+            enum:
+              - stream
+              - download
+              - livetv
+        - name: grabberIdentifier
+          description: Targeted grabber identifier.
+          in: query
+          schema:
+            type: string
       responses:
         '200':
           description: OK
@@ -3426,6 +3643,16 @@ paths:
           in: query
           schema:
             $ref: "#/components/schemas/BoolInt"
+        - name: X-Plex-Container-Start
+          description: Pagination start offset.
+          in: query
+          schema:
+            type: integer
+        - name: X-Plex-Container-Size
+          description: Pagination page size.
+          in: query
+          schema:
+            type: integer
       responses:
         '200':
           description: OK
@@ -3618,6 +3845,16 @@ paths:
           schema:
             type: string
           example: plex://episode/5fc70265c40548002d539d23
+        - name: type
+          description: Subscription type.
+          in: query
+          schema:
+            type: string
+        - name: targetLibrarySectionID
+          description: Target library section ID.
+          in: query
+          schema:
+            type: integer
       responses:
         '200':
           description: OK
@@ -3702,6 +3939,19 @@ paths:
       responses:
         '200':
           description: OK
+  /myplex/account:
+    get:
+      operationId: getMyPlexAccount
+      summary: Get MyPlex Account
+      tags:
+        - Users
+      description: Get linked MyPlex account info on PMS.
+      security:
+        - token:
+            - admin
+      responses:
+        '200':
+          description: OK
   /myplex/claim:
     post:
       operationId: claimServer
@@ -3732,6 +3982,19 @@ paths:
           $ref: "#/components/responses/400"
         '401':
           $ref: "#/components/responses/401"
+  /myplex/refreshReachability:
+    put:
+      operationId: refreshReachability
+      summary: Refresh Reachability
+      tags:
+        - General
+      description: Refresh remote access port mapping.
+      security:
+        - token:
+            - admin
+      responses:
+        '200':
+          description: OK
   /photo/:/transcode:
     get:
       operationId: transcodeImage
@@ -3952,6 +4215,52 @@ paths:
         '401':
           $ref: "#/components/responses/401"
       x-speakeasy-retries-name: plextv-auth-retry
+  /pins.xml:
+    post:
+      operationId: createLegacyPin
+      summary: Create Legacy PIN
+      tags:
+        - Authentication
+      description: Legacy PIN creation (XML).
+      servers:
+        - url: https://plex.tv
+      responses:
+        '200':
+          description: OK
+          content:
+            application/xml:
+              schema:
+                type: object
+  /pins/link:
+    put:
+      operationId: linkOAuthPin
+      summary: Link OAuth PIN
+      tags:
+        - Authentication
+      description: Link a PIN to an account (OAuth completion).
+      servers:
+        - url: https://plex.tv/api/v2
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                authToken:
+                  type: string
+                pin:
+                  type: string
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                authToken:
+                  type: string
+                pin:
+                  type: string
+      responses:
+        '200':
+          description: OK
   /player/playback/audioStream:
     post:
       operationId: playerAudioStream
@@ -4700,6 +5009,36 @@ paths:
         '200':
           description: OK
   /playlists:
+    delete:
+      operationId: deletePlaylistByRatingKey
+      summary: Delete Playlist
+      tags:
+        - Playlists
+      description: Delete a playlist.
+      security:
+        - token:
+            - admin
+      parameters:
+        - $ref: "#/components/parameters/accepts"
+        - $ref: "#/components/parameters/X-Plex-Client-Identifier"
+        - $ref: "#/components/parameters/X-Plex-Product"
+        - $ref: "#/components/parameters/X-Plex-Version"
+        - $ref: "#/components/parameters/X-Plex-Platform"
+        - $ref: "#/components/parameters/X-Plex-Platform-Version"
+        - $ref: "#/components/parameters/X-Plex-Device"
+        - $ref: "#/components/parameters/X-Plex-Model"
+        - $ref: "#/components/parameters/X-Plex-Device-Vendor"
+        - $ref: "#/components/parameters/X-Plex-Device-Name"
+        - $ref: "#/components/parameters/X-Plex-Marketplace"
+        - name: ratingKey
+          description: The rating key of the playlist to delete.
+          in: query
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
     get:
       operationId: listPlaylists
       summary: List playlists
@@ -5941,6 +6280,19 @@ paths:
       responses:
         '200':
           description: OK
+  /transcode/sessions:
+    get:
+      operationId: getTranscodeSessions
+      summary: Get Transcode Sessions
+      tags:
+        - Transcoder
+      description: Get active transcode sessions.
+      security:
+        - token:
+            - admin
+      responses:
+        '200':
+          description: OK
   /updater/apply:
     put:
       operationId: applyUpdates
@@ -6819,6 +7171,11 @@ paths:
         - $ref: "#/components/parameters/transcodeType"
         - $ref: "#/components/parameters/transcodeSessionId"
         - $ref: "#/components/parameters/advancedSubtitles"
+        - name: platform
+          description: Client platform (some clients send this in addition to headers).
+          in: query
+          schema:
+            type: string
         - name: audioBoost
           description: Percentage of original audio loudness to use when transcoding (100 is equivalent to original volume, 50 is half, 200 is double, etc)
           in: query
@@ -7116,6 +7473,11 @@ paths:
         - $ref: "#/components/parameters/transcodeType"
         - $ref: "#/components/parameters/transcodeSessionId"
         - $ref: "#/components/parameters/advancedSubtitles"
+        - name: platform
+          description: Client platform (some clients send this in addition to headers).
+          in: query
+          schema:
+            type: string
         - name: audioBoost
           description: Percentage of original audio loudness to use when transcoding (100 is equivalent to original volume, 50 is half, 200 is double, etc)
           in: query
@@ -7745,8 +8107,8 @@ paths:
                               $ref: "#/components/schemas/DownloadQueueItem"
   /downloads/{channel}.json:
     get:
-      operationId: getDownloads
-      summary: Get Downloads
+      operationId: getPlexDownloads
+      summary: Get Plex Downloads
       tags:
         - General
       description: Get available Plex update downloads for a specific channel (e.g. `plexpass`, `public`).
@@ -10584,6 +10946,46 @@ paths:
           in: query
           schema:
             type: string
+        - name: filters
+          description: General filtering expression.
+          in: query
+          schema:
+            type: string
+        - name: unwatched
+          description: Filter to unwatched only (1 = true).
+          in: query
+          schema:
+            $ref: "#/components/schemas/BoolInt"
+        - name: genre
+          description: Filter by genre.
+          in: query
+          schema:
+            type: string
+        - name: studio
+          description: Filter by studio.
+          in: query
+          schema:
+            type: string
+        - name: contentRating
+          description: Filter by content rating.
+          in: query
+          schema:
+            type: string
+        - name: resolution
+          description: Filter by resolution.
+          in: query
+          schema:
+            type: string
+        - name: year
+          description: Filter by year.
+          in: query
+          schema:
+            type: integer
+        - name: firstCharacter
+          description: Filter by first character of title.
+          in: query
+          schema:
+            type: string
       responses:
         '200':
           description: OK
@@ -12889,8 +13291,8 @@ paths:
               schema:
                 $ref: "#/components/schemas/DVRResponse"
     patch:
-      operationId: patchDVR
-      summary: Update DVR
+      operationId: patchDVRSettings
+      summary: Update DVR Settings
       tags:
         - DVRs
       description: Update DVR settings.
@@ -12919,8 +13321,8 @@ paths:
         '200':
           description: OK
     put:
-      operationId: updateDVR
-      summary: Update DVR
+      operationId: updateDVRSettings
+      summary: Update DVR Settings
       tags:
         - DVRs
       description: Update DVR settings.
@@ -13142,6 +13544,11 @@ paths:
           in: query
           schema:
             type: string
+        - name: value
+          description: Preference value to set.
+          in: query
+          schema:
+            type: string
       responses:
         '200':
           description: OK
@@ -13158,6 +13565,37 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/DVRResponse"
+  /livetv/dvrs/{dvrId}/recordings:
+    get:
+      operationId: getDVRRecordingsByDVR
+      summary: Get DVR Recordings by DVR
+      tags:
+        - Live TV
+      description: List completed DVR recordings for a specific DVR.
+      security:
+        - token:
+            - admin
+      parameters:
+        - $ref: "#/components/parameters/accepts"
+        - $ref: "#/components/parameters/X-Plex-Client-Identifier"
+        - $ref: "#/components/parameters/X-Plex-Product"
+        - $ref: "#/components/parameters/X-Plex-Version"
+        - $ref: "#/components/parameters/X-Plex-Platform"
+        - $ref: "#/components/parameters/X-Plex-Platform-Version"
+        - $ref: "#/components/parameters/X-Plex-Device"
+        - $ref: "#/components/parameters/X-Plex-Model"
+        - $ref: "#/components/parameters/X-Plex-Device-Vendor"
+        - $ref: "#/components/parameters/X-Plex-Device-Name"
+        - $ref: "#/components/parameters/X-Plex-Marketplace"
+        - name: dvrId
+          description: The ID of the DVR.
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
   /livetv/dvrs/{dvrId}/reloadGuide:
     delete:
       operationId: stopDVRReload
@@ -13601,6 +14039,11 @@ paths:
             type: integer
         - name: name
           description: The preference names and values.
+          in: query
+          schema:
+            type: string
+        - name: value
+          description: Preference value to set.
           in: query
           schema:
             type: string
@@ -14903,6 +15346,11 @@ paths:
         - $ref: "#/components/parameters/transcodeType"
         - $ref: "#/components/parameters/transcodeSessionId"
         - $ref: "#/components/parameters/advancedSubtitles"
+        - name: platform
+          description: Client platform (some clients send this in addition to headers).
+          in: query
+          schema:
+            type: string
         - name: extension
           description: Extension
           in: path
@@ -18873,6 +19321,18 @@ components:
         random:
           description: Indicating that the contents of the hub may change on each request
           type: boolean
+        reason:
+          description: Reason for hub inclusion (e.g. "because you watched").
+          type: string
+          example: becauseYouWatched
+        reasonID:
+          description: ID of the item that triggered the reason.
+          type: integer
+          example: 12345
+        reasonTitle:
+          description: Human-readable reason title.
+          type: string
+          example: Because You Watched The Matrix
         size:
           type: integer
           example: 1
@@ -19448,6 +19908,10 @@ components:
                           duration:
                             description: The total duration of the playlist in ms
                             type: integer
+                          durationInSeconds:
+                            description: Total duration in seconds (redundant but present in XML).
+                            type: integer
+                            example: 7200
                           key:
                             description: Leads to a list of items in the playlist.
                             type: string
@@ -19461,6 +19925,10 @@ components:
                               - audio
                               - video
                               - photo
+                          radio:
+                            description: Whether this is a generated radio playlist.
+                            type: boolean
+                            example: false
                           smart:
                             description: Whether or not the playlist is smart.
                             type: boolean
@@ -19816,6 +20284,10 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Tag"
+        distance:
+          description: Levenshtein distance for voice search results.
+          type: integer
+          example: 2
         duration:
           description: When present, the duration for the item, in units of milliseconds.
           type: integer
@@ -20485,9 +20957,6 @@ components:
         - name
         - product
         - productVersion
-        - platform
-        - platformVersion
-        - device
         - clientIdentifier
         - createdAt
         - lastSeenAt
@@ -20634,7 +21103,10 @@ components:
             countryCode:
               type: string
             diagnostics:
-              type: string
+              description: Comma-separated list of enabled diagnostics modules.
+              type: array
+              items:
+                type: string
             eventStream:
               type: boolean
             friendlyName:
@@ -20666,10 +21138,14 @@ components:
             myPlexUsername:
               type: string
             offlineTranscode:
-              example: 1
+              description: Whether offline transcoding is enabled.
+              type: integer
+              format: int32
             ownerFeatures:
-              description: A comma-separated list of features which are enabled for the server owner
-              type: string
+              description: List of enabled owner features.
+              type: array
+              items:
+                type: string
             platform:
               type: string
             platformVersion:
@@ -20699,11 +21175,20 @@ components:
             transcoderVideo:
               type: boolean
             transcoderVideoBitrates:
-              description: The suggested video quality bitrates to present to the user
+              description: List of supported transcoder video bitrates.
+              type: array
+              items:
+                type: string
             transcoderVideoQualities:
-              type: string
+              description: List of supported transcoder video qualities.
+              type: array
+              items:
+                type: string
             transcoderVideoResolutions:
-              description: The suggested video resolutions to the above quality bitrates
+              description: List of supported transcoder video resolutions.
+              type: array
+              items:
+                type: string
             updatedAt:
               type: integer
             updater:
@@ -21333,6 +21818,23 @@ components:
                 format: int32
                 example: 401
       x-speakeasy-name-override: Unauthorized
+    UpdaterStatus:
+      description: Status of the PMS updater.
+      type: object
+      properties:
+        checkedAt:
+          description: Timestamp of the last update check.
+          type: integer
+        downloadURL:
+          description: The URL where the update is available.
+          type: string
+        Release:
+          type: array
+          items:
+            $ref: "#/components/schemas/Release"
+        status:
+          description: The current error code (0 means no error).
+          type: integer
     User:
       description: The user playing the content
       type: object
