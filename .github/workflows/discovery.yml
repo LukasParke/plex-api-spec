@@ -1,0 +1,45 @@
+name: Nightly Discovery Pipeline
+
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyyaml
+
+      - name: Set up Docker Compose
+        uses: docker/setup-buildx-action@v3
+
+      - name: Run discovery pipeline
+        run: |
+          cd scripts/discovery
+          python run_discovery.py
+        env:
+          PLEX_CLAIM_TOKEN: ${{ secrets.PLEX_CLAIM_TOKEN }}
+
+      - name: Upload diff report
+        uses: actions/upload-artifact@v4
+        with:
+          name: diff-report
+          path: /tmp/diff_report.json
+
+      - name: Upload traffic capture
+        uses: actions/upload-artifact@v4
+        with:
+          name: traffic-capture
+          path: /tmp/traffic.jsonl

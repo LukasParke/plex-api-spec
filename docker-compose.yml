@@ -1,0 +1,56 @@
+version: "3.8"
+
+services:
+  pms:
+    image: plexinc/pms-docker:latest
+    container_name: plex-api-test
+    restart: "no"
+    ports:
+      - "32400:32400/tcp"
+      - "32400:32400/udp"
+    environment:
+      - PLEX_CLAIM=${PLEX_CLAIM_TOKEN:-claim-xxxxxxxxxxxxxxxxxxxx}
+      - PUID=1000
+      - PGID=1000
+      - TZ=UTC
+    volumes:
+      - ./test-data/config:/config
+      - ./test-data/transcode:/transcode
+      - ./test-data/media:/data/media:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:32400/identity"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
+
+  proxy:
+    build:
+      context: ../arbiter
+      dockerfile: Dockerfile
+    container_name: plex-api-proxy
+    restart: "no"
+    ports:
+      - "8080:8080"
+      - "9000:9000"
+    command:
+      - "node"
+      - "dist/src/cli.js"
+      - "--target"
+      - "http://pms:32400"
+      - "--port"
+      - "8080"
+      - "--docs-port"
+      - "9000"
+      - "--db-path"
+      - "/data/arbiter.db"
+      - "--diff-against"
+      - "/spec/plex-api-spec.yaml"
+      - "--exit-on-gap"
+      - "--verbose"
+    volumes:
+      - ./test-data/capture:/data
+      - ./plex-api-spec.yaml:/spec/plex-api-spec.yaml:ro
+    depends_on:
+      pms:
+        condition: service_healthy
