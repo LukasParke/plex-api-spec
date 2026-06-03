@@ -2,7 +2,33 @@ openapi: 3.1.1
 info:
   title: Plex Media Server
   version: 1.1.1
-  description: OpenAPI specification for Plex Media Server API
+  description: |-
+    OpenAPI specification for the Plex Media Server (PMS) API and the plex.tv cloud API.
+
+    ## Base URLs
+
+    - **PMS (local server)**: `http(s)://{host}:{port}` — Most endpoints in this spec target the local PMS.
+    - **plex.tv v2**: `https://plex.tv/api/v2` — Authentication, account, and social endpoints.
+    - **plex.tv v1 (legacy)**: `https://plex.tv/api` — Legacy XML endpoints (friends, home users, claims).
+    - **Cloud providers**: `https://discover.provider.plex.tv`, `https://metadata.provider.plex.tv`, etc.
+
+    Endpoints that target plex.tv or cloud providers declare an override `servers` array.
+
+    ## Authentication
+
+    - **X-Plex-Token**: Pass via the `X-Plex-Token` header on every request. It may also be passed as a query parameter (`?X-Plex-Token=...`) on all endpoints.
+    - **X-Plex-Client-Identifier**: Mandatory for OAuth PIN flow (`/pins`) and JWT device registration. Must be a unique, persistent identifier for the client application.
+    - **OAuth PIN Flow**: `POST /pins` → user visits `https://plex.tv/link` → `GET /pins/{pinId}` → obtain `authToken`.
+
+    ## Response Formats
+
+    - **PMS endpoints**: Return XML by default. Send `Accept: application/json` to receive JSON.
+    - **plex.tv v2**: Returns JSON by default.
+    - **Legacy v1 endpoints** (`/pins.xml`, `/api/resources`, `/api/users/`): Return XML only.
+
+    ## Rate Limiting
+
+    plex.tv auth endpoints (PIN creation, sign-in) enforce rate limits. Clients should implement exponential backoff and reuse tokens rather than re-authenticating on every request.
   contact:
     name: Plex API Spec Maintainers
     url: https://github.com/LukasParke/plex-api-spec
@@ -1034,6 +1060,38 @@ paths:
                         type: array
                         items:
                           $ref: "#/components/schemas/PlexDevice"
+  /cloud_server:
+    get:
+      operationId: getCloudServer
+      summary: Get Cloud Server
+      tags:
+        - General
+      description: Get Plex Cloud server status for the logged-in user.
+      servers:
+        - url: https://plex.tv/api/v2
+      parameters:
+        - $ref: "#/components/parameters/accepts"
+        - $ref: "#/components/parameters/X-Plex-Client-Identifier"
+        - $ref: "#/components/parameters/X-Plex-Product"
+        - $ref: "#/components/parameters/X-Plex-Version"
+        - $ref: "#/components/parameters/X-Plex-Platform"
+        - $ref: "#/components/parameters/X-Plex-Platform-Version"
+        - $ref: "#/components/parameters/X-Plex-Device"
+        - $ref: "#/components/parameters/X-Plex-Model"
+        - $ref: "#/components/parameters/X-Plex-Device-Vendor"
+        - $ref: "#/components/parameters/X-Plex-Device-Name"
+        - $ref: "#/components/parameters/X-Plex-Marketplace"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /devices:
     get:
       operationId: getSystemDevices
@@ -1207,6 +1265,38 @@ paths:
                           type: string
                         uuid:
                           type: string
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
+  /geoip:
+    get:
+      operationId: getGeoIP
+      summary: Get GeoIP
+      tags:
+        - General
+      description: Get GeoIP lookup information for the current request.
+      servers:
+        - url: https://plex.tv/api/v2
+      parameters:
+        - $ref: "#/components/parameters/accepts"
+        - $ref: "#/components/parameters/X-Plex-Client-Identifier"
+        - $ref: "#/components/parameters/X-Plex-Product"
+        - $ref: "#/components/parameters/X-Plex-Version"
+        - $ref: "#/components/parameters/X-Plex-Platform"
+        - $ref: "#/components/parameters/X-Plex-Platform-Version"
+        - $ref: "#/components/parameters/X-Plex-Device"
+        - $ref: "#/components/parameters/X-Plex-Model"
+        - $ref: "#/components/parameters/X-Plex-Device-Vendor"
+        - $ref: "#/components/parameters/X-Plex-Device-Name"
+        - $ref: "#/components/parameters/X-Plex-Marketplace"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
         '400':
           $ref: "#/components/responses/400"
         '401':
@@ -1610,6 +1700,38 @@ paths:
                       version:
                         description: The full version string of the PMS
                         type: string
+  /ip:
+    get:
+      operationId: getPublicIP
+      summary: Get Public IP
+      tags:
+        - General
+      description: Get the public IP address detected by Plex.
+      servers:
+        - url: https://plex.tv
+      parameters:
+        - $ref: "#/components/parameters/accepts"
+        - $ref: "#/components/parameters/X-Plex-Client-Identifier"
+        - $ref: "#/components/parameters/X-Plex-Product"
+        - $ref: "#/components/parameters/X-Plex-Version"
+        - $ref: "#/components/parameters/X-Plex-Platform"
+        - $ref: "#/components/parameters/X-Plex-Platform-Version"
+        - $ref: "#/components/parameters/X-Plex-Device"
+        - $ref: "#/components/parameters/X-Plex-Model"
+        - $ref: "#/components/parameters/X-Plex-Device-Vendor"
+        - $ref: "#/components/parameters/X-Plex-Device-Name"
+        - $ref: "#/components/parameters/X-Plex-Marketplace"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/all:
     get:
       operationId: getLibraryItems
@@ -2357,7 +2479,7 @@ paths:
       summary: Create a DVR
       tags:
         - DVRs
-      description: Creation of a DVR, after creation of a devcie and a lineup is selected
+      description: Creation of a DVR, after creation of a device and a lineup is selected
       security:
         - token:
             - admin
@@ -2633,7 +2755,7 @@ paths:
   /livetv/epg/lineupchannels:
     get:
       operationId: getLineupChannels
-      summary: Get the channels for mulitple lineups
+      summary: Get the channels for multiple lineups
       tags:
         - EPG
       description: Get the channels across multiple lineups
@@ -3306,6 +3428,36 @@ paths:
           description: User cannot access DVR on this server
           content:
             text/html: {}
+  /myplex/claim:
+    post:
+      operationId: claimServer
+      summary: Claim Server
+      tags:
+        - General
+      description: Claim the local PMS server using a claim token obtained from plex.tv.
+      parameters:
+        - $ref: "#/components/parameters/accepts"
+        - $ref: "#/components/parameters/X-Plex-Client-Identifier"
+        - $ref: "#/components/parameters/X-Plex-Product"
+        - $ref: "#/components/parameters/X-Plex-Version"
+        - $ref: "#/components/parameters/X-Plex-Platform"
+        - $ref: "#/components/parameters/X-Plex-Platform-Version"
+        - $ref: "#/components/parameters/X-Plex-Device"
+        - $ref: "#/components/parameters/X-Plex-Model"
+        - $ref: "#/components/parameters/X-Plex-Device-Vendor"
+        - $ref: "#/components/parameters/X-Plex-Device-Name"
+        - $ref: "#/components/parameters/X-Plex-Marketplace"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /photo/:/transcode:
     get:
       operationId: transcodeImage
@@ -4661,6 +4813,102 @@ paths:
           description: Invalid or no token provided or a transient token could not be created
           content:
             text/html: {}
+  /server:
+    get:
+      operationId: getUserServer
+      summary: Get User Server Association
+      tags:
+        - Users
+      description: Get server association information for the logged-in user.
+      servers:
+        - url: https://plex.tv/api/v2
+      parameters:
+        - $ref: "#/components/parameters/accepts"
+        - $ref: "#/components/parameters/X-Plex-Client-Identifier"
+        - $ref: "#/components/parameters/X-Plex-Product"
+        - $ref: "#/components/parameters/X-Plex-Version"
+        - $ref: "#/components/parameters/X-Plex-Platform"
+        - $ref: "#/components/parameters/X-Plex-Platform-Version"
+        - $ref: "#/components/parameters/X-Plex-Device"
+        - $ref: "#/components/parameters/X-Plex-Model"
+        - $ref: "#/components/parameters/X-Plex-Device-Vendor"
+        - $ref: "#/components/parameters/X-Plex-Device-Name"
+        - $ref: "#/components/parameters/X-Plex-Marketplace"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
+  /server/access_tokens:
+    get:
+      operationId: getServerAccessTokens
+      summary: Get Server Access Tokens
+      tags:
+        - Authentication
+      description: List access tokens for the server.
+      servers:
+        - url: https://plex.tv/api/v2
+      parameters:
+        - $ref: "#/components/parameters/accepts"
+        - $ref: "#/components/parameters/X-Plex-Client-Identifier"
+        - $ref: "#/components/parameters/X-Plex-Product"
+        - $ref: "#/components/parameters/X-Plex-Version"
+        - $ref: "#/components/parameters/X-Plex-Platform"
+        - $ref: "#/components/parameters/X-Plex-Platform-Version"
+        - $ref: "#/components/parameters/X-Plex-Device"
+        - $ref: "#/components/parameters/X-Plex-Model"
+        - $ref: "#/components/parameters/X-Plex-Device-Vendor"
+        - $ref: "#/components/parameters/X-Plex-Device-Name"
+        - $ref: "#/components/parameters/X-Plex-Marketplace"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
+  /server/users/features:
+    get:
+      operationId: getServerUserFeatures
+      summary: Get Server User Features
+      tags:
+        - Users
+      description: Get features enabled per shared user for the server.
+      servers:
+        - url: https://plex.tv/api/v2
+      parameters:
+        - $ref: "#/components/parameters/accepts"
+        - $ref: "#/components/parameters/X-Plex-Client-Identifier"
+        - $ref: "#/components/parameters/X-Plex-Product"
+        - $ref: "#/components/parameters/X-Plex-Version"
+        - $ref: "#/components/parameters/X-Plex-Platform"
+        - $ref: "#/components/parameters/X-Plex-Platform-Version"
+        - $ref: "#/components/parameters/X-Plex-Device"
+        - $ref: "#/components/parameters/X-Plex-Model"
+        - $ref: "#/components/parameters/X-Plex-Device-Vendor"
+        - $ref: "#/components/parameters/X-Plex-Device-Name"
+        - $ref: "#/components/parameters/X-Plex-Marketplace"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /servers:
     get:
       operationId: getLocalServers
@@ -5493,6 +5741,34 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/UnauthorizedErrorResponse"
+  /user/view_state_sync:
+    put:
+      operationId: updateViewStateSync
+      summary: Update View State Sync
+      tags:
+        - Users
+      description: Enable or disable watch-state sync consent for the logged-in user.
+      servers:
+        - url: https://plex.tv/api/v2
+      parameters:
+        - $ref: "#/components/parameters/accepts"
+        - $ref: "#/components/parameters/X-Plex-Client-Identifier"
+        - $ref: "#/components/parameters/X-Plex-Product"
+        - $ref: "#/components/parameters/X-Plex-Version"
+        - $ref: "#/components/parameters/X-Plex-Platform"
+        - $ref: "#/components/parameters/X-Plex-Platform-Version"
+        - $ref: "#/components/parameters/X-Plex-Device"
+        - $ref: "#/components/parameters/X-Plex-Model"
+        - $ref: "#/components/parameters/X-Plex-Device-Vendor"
+        - $ref: "#/components/parameters/X-Plex-Device-Name"
+        - $ref: "#/components/parameters/X-Plex-Marketplace"
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /users:
     get:
       operationId: get-users
@@ -5820,6 +6096,98 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/UnauthorizedErrorResponse"
+  /users/account:
+    get:
+      operationId: getAccountXML
+      summary: Get Account (XML)
+      tags:
+        - Users
+      description: Get the logged-in user's account details in XML format (legacy v1 endpoint).
+      servers:
+        - url: https://plex.tv
+      parameters:
+        - $ref: "#/components/parameters/accepts"
+        - $ref: "#/components/parameters/X-Plex-Client-Identifier"
+        - $ref: "#/components/parameters/X-Plex-Product"
+        - $ref: "#/components/parameters/X-Plex-Version"
+        - $ref: "#/components/parameters/X-Plex-Platform"
+        - $ref: "#/components/parameters/X-Plex-Platform-Version"
+        - $ref: "#/components/parameters/X-Plex-Device"
+        - $ref: "#/components/parameters/X-Plex-Model"
+        - $ref: "#/components/parameters/X-Plex-Device-Vendor"
+        - $ref: "#/components/parameters/X-Plex-Device-Name"
+        - $ref: "#/components/parameters/X-Plex-Marketplace"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/xml:
+              schema:
+                type: object
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
+  /users/account.json:
+    get:
+      operationId: getAccountJSON
+      summary: Get Account (JSON)
+      tags:
+        - Users
+      description: Get the logged-in user's account details in JSON format (legacy v1 endpoint).
+      servers:
+        - url: https://plex.tv
+      parameters:
+        - $ref: "#/components/parameters/accepts"
+        - $ref: "#/components/parameters/X-Plex-Client-Identifier"
+        - $ref: "#/components/parameters/X-Plex-Product"
+        - $ref: "#/components/parameters/X-Plex-Version"
+        - $ref: "#/components/parameters/X-Plex-Platform"
+        - $ref: "#/components/parameters/X-Plex-Platform-Version"
+        - $ref: "#/components/parameters/X-Plex-Device"
+        - $ref: "#/components/parameters/X-Plex-Model"
+        - $ref: "#/components/parameters/X-Plex-Device-Vendor"
+        - $ref: "#/components/parameters/X-Plex-Device-Name"
+        - $ref: "#/components/parameters/X-Plex-Marketplace"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
+  /users/password:
+    post:
+      operationId: changePassword
+      summary: Change Password
+      tags:
+        - Authentication
+      description: Change or reset the logged-in user's password.
+      servers:
+        - url: https://plex.tv/api/v2
+      parameters:
+        - $ref: "#/components/parameters/accepts"
+        - $ref: "#/components/parameters/X-Plex-Client-Identifier"
+        - $ref: "#/components/parameters/X-Plex-Product"
+        - $ref: "#/components/parameters/X-Plex-Version"
+        - $ref: "#/components/parameters/X-Plex-Platform"
+        - $ref: "#/components/parameters/X-Plex-Platform-Version"
+        - $ref: "#/components/parameters/X-Plex-Device"
+        - $ref: "#/components/parameters/X-Plex-Model"
+        - $ref: "#/components/parameters/X-Plex-Device-Vendor"
+        - $ref: "#/components/parameters/X-Plex-Device-Name"
+        - $ref: "#/components/parameters/X-Plex-Marketplace"
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /users/signin:
     post:
       operationId: post-users-sign-in-data
@@ -6012,6 +6380,65 @@ paths:
           description: OK
         '400':
           $ref: "#/components/responses/400"
+  /webhooks:
+    get:
+      operationId: getWebhooks
+      summary: Get Webhooks
+      tags:
+        - General
+      description: List configured webhook URLs for the logged-in user.
+      servers:
+        - url: https://plex.tv/api/v2
+      parameters:
+        - $ref: "#/components/parameters/accepts"
+        - $ref: "#/components/parameters/X-Plex-Client-Identifier"
+        - $ref: "#/components/parameters/X-Plex-Product"
+        - $ref: "#/components/parameters/X-Plex-Version"
+        - $ref: "#/components/parameters/X-Plex-Platform"
+        - $ref: "#/components/parameters/X-Plex-Platform-Version"
+        - $ref: "#/components/parameters/X-Plex-Device"
+        - $ref: "#/components/parameters/X-Plex-Model"
+        - $ref: "#/components/parameters/X-Plex-Device-Vendor"
+        - $ref: "#/components/parameters/X-Plex-Device-Name"
+        - $ref: "#/components/parameters/X-Plex-Marketplace"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
+    post:
+      operationId: addWebhook
+      summary: Add Webhook
+      tags:
+        - General
+      description: Add a webhook URL for the logged-in user.
+      servers:
+        - url: https://plex.tv/api/v2
+      parameters:
+        - $ref: "#/components/parameters/accepts"
+        - $ref: "#/components/parameters/X-Plex-Client-Identifier"
+        - $ref: "#/components/parameters/X-Plex-Product"
+        - $ref: "#/components/parameters/X-Plex-Version"
+        - $ref: "#/components/parameters/X-Plex-Platform"
+        - $ref: "#/components/parameters/X-Plex-Platform-Version"
+        - $ref: "#/components/parameters/X-Plex-Device"
+        - $ref: "#/components/parameters/X-Plex-Model"
+        - $ref: "#/components/parameters/X-Plex-Device-Vendor"
+        - $ref: "#/components/parameters/X-Plex-Device-Name"
+        - $ref: "#/components/parameters/X-Plex-Marketplace"
+      responses:
+        '200':
+          description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /{transcodeType}/:/transcode/universal/decision:
     get:
       operationId: makeDecision
@@ -6942,6 +7369,43 @@ paths:
                             type: array
                             items:
                               $ref: "#/components/schemas/DownloadQueueItem"
+  /downloads/{channel}.json:
+    get:
+      operationId: getDownloads
+      summary: Get Downloads
+      tags:
+        - General
+      description: Get available Plex update downloads for a specific channel (e.g. `plexpass`, `public`).
+      servers:
+        - url: https://plex.tv
+      parameters:
+        - $ref: "#/components/parameters/accepts"
+        - $ref: "#/components/parameters/X-Plex-Client-Identifier"
+        - $ref: "#/components/parameters/X-Plex-Product"
+        - $ref: "#/components/parameters/X-Plex-Version"
+        - $ref: "#/components/parameters/X-Plex-Platform"
+        - $ref: "#/components/parameters/X-Plex-Platform-Version"
+        - $ref: "#/components/parameters/X-Plex-Device"
+        - $ref: "#/components/parameters/X-Plex-Model"
+        - $ref: "#/components/parameters/X-Plex-Device-Vendor"
+        - $ref: "#/components/parameters/X-Plex-Device-Name"
+        - $ref: "#/components/parameters/X-Plex-Marketplace"
+        - name: channel
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /home/users/{id}/switch:
     post:
       operationId: switchHomeUser
@@ -10734,7 +11198,7 @@ paths:
       summary: Set DVR preferences
       tags:
         - DVRs
-      description: Set DVR preferences by name avd value
+      description: Set DVR preferences by name and value
       security:
         - token:
             - admin
@@ -12431,6 +12895,43 @@ paths:
       responses:
         '200':
           description: OK
+  /user/{uuid}/settings/opt_outs:
+    get:
+      operationId: getUserOptOuts
+      summary: Get User Opt-Outs
+      tags:
+        - Users
+      description: Get online media source opt-out settings for a user.
+      servers:
+        - url: https://plex.tv/api/v2
+      parameters:
+        - $ref: "#/components/parameters/accepts"
+        - $ref: "#/components/parameters/X-Plex-Client-Identifier"
+        - $ref: "#/components/parameters/X-Plex-Product"
+        - $ref: "#/components/parameters/X-Plex-Version"
+        - $ref: "#/components/parameters/X-Plex-Platform"
+        - $ref: "#/components/parameters/X-Plex-Platform-Version"
+        - $ref: "#/components/parameters/X-Plex-Device"
+        - $ref: "#/components/parameters/X-Plex-Model"
+        - $ref: "#/components/parameters/X-Plex-Device-Vendor"
+        - $ref: "#/components/parameters/X-Plex-Device-Name"
+        - $ref: "#/components/parameters/X-Plex-Marketplace"
+        - name: uuid
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /{transcodeType}/:/transcode/universal/start.{extension}:
     get:
       operationId: startTranscodeSession
@@ -16909,7 +17410,7 @@ components:
         protocol:
           type: string
     MediaGrabOperation:
-      description: A media grab opration represents a scheduled or active recording of media
+      description: A media grab operation represents a scheduled or active recording of media
       type: object
       properties:
         currentSize:
