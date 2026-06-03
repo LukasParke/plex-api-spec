@@ -2,6 +2,11 @@ openapi: 3.1.1
 info:
   title: Plex Media Server
   version: 1.1.1
+  description: OpenAPI specification for Plex Media Server API
+  contact:
+    name: Plex API Spec Maintainers
+    url: https://github.com/LukasParke/plex-api-spec
+    email: api@plex.tv
   license:
     name: Apache 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0.html
@@ -1145,6 +1150,7 @@ paths:
           content:
             application/json:
               schema:
+                type: object
                 properties:
                   MediaContainer:
                     allOf:
@@ -2345,17 +2351,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  MediaContainer:
-                    allOf:
-                      - $ref: "#/components/schemas/MediaContainerWithStatus"
-                      - type: object
-                        properties:
-                          DVR:
-                            type: array
-                            items:
-                              $ref: "#/components/schemas/DVR"
+                $ref: "#/components/schemas/DVRResponse"
     post:
       operationId: createDVR
       summary: Create a DVR
@@ -2516,17 +2512,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  MediaContainer:
-                    allOf:
-                      - $ref: "#/components/schemas/MediaContainer"
-                      - type: object
-                        properties:
-                          Channel:
-                            type: array
-                            items:
-                              $ref: "#/components/schemas/Channel"
+                $ref: "#/components/schemas/ChannelResponse"
         '404':
           description: No provider with the identifier was found
           content:
@@ -3512,8 +3498,9 @@ paths:
                 type: object
                 properties:
                   authToken:
-                    type: string
-                    nullable: true
+                    type:
+                      - string
+                      - 'null'
                   clientIdentifier:
                     type: string
                   code:
@@ -4562,26 +4549,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  errors:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        code:
-                          type: integer
-                          format: int32
-                          example: 1001
-                        message:
-                          type: string
-                          example: User could not be authenticated
-                          x-speakeasy-error-message: true
-                        status:
-                          type: integer
-                          format: int32
-                          example: 401
-                x-speakeasy-name-override: Unauthorized
+                $ref: "#/components/schemas/UnauthorizedErrorResponse"
   /security/resources:
     get:
       operationId: getSourceConnectionInformation
@@ -5518,51 +5486,13 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  errors:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        code:
-                          type: integer
-                          format: int32
-                          example: 1000
-                        message:
-                          type: string
-                          example: X-Plex-Client-Identifier is missing
-                          x-speakeasy-error-message: true
-                        status:
-                          type: integer
-                          format: int32
-                          example: 400
-                x-speakeasy-name-override: BadRequest
+                $ref: "#/components/schemas/BadRequestErrorResponse"
         '401':
           description: Unauthorized - Returned if the X-Plex-Token is missing from the header or query.
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  errors:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        code:
-                          type: integer
-                          format: int32
-                          example: 1001
-                        message:
-                          type: string
-                          example: User could not be authenticated
-                          x-speakeasy-error-message: true
-                        status:
-                          type: integer
-                          format: int32
-                          example: 401
-                x-speakeasy-name-override: Unauthorized
+                $ref: "#/components/schemas/UnauthorizedErrorResponse"
   /users:
     get:
       operationId: get-users
@@ -5883,51 +5813,13 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  errors:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        code:
-                          type: integer
-                          format: int32
-                          example: 1000
-                        message:
-                          type: string
-                          example: X-Plex-Client-Identifier is missing
-                          x-speakeasy-error-message: true
-                        status:
-                          type: integer
-                          format: int32
-                          example: 400
-                x-speakeasy-name-override: BadRequest
+                $ref: "#/components/schemas/BadRequestErrorResponse"
         '401':
           description: Unauthorized - Returned if the X-Plex-Token is missing from the header or query.
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  errors:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        code:
-                          type: integer
-                          format: int32
-                          example: 1001
-                        message:
-                          type: string
-                          example: User could not be authenticated
-                          x-speakeasy-error-message: true
-                        status:
-                          type: integer
-                          format: int32
-                          example: 401
-                x-speakeasy-name-override: Unauthorized
+                $ref: "#/components/schemas/UnauthorizedErrorResponse"
   /users/signin:
     post:
       operationId: post-users-sign-in-data
@@ -6050,6 +5942,7 @@ paths:
                                 - $ref: "#/components/schemas/PlexDateTime"
                                 - type: 'null'
                             state:
+                              type: string
                               enum:
                                 - ended
                               example: ended
@@ -6086,51 +5979,13 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  errors:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        code:
-                          type: integer
-                          format: int32
-                          example: 1000
-                        message:
-                          type: string
-                          example: X-Plex-Client-Identifier is missing
-                          x-speakeasy-error-message: true
-                        status:
-                          type: integer
-                          format: int32
-                          example: 400
-                x-speakeasy-name-override: BadRequest
+                $ref: "#/components/schemas/BadRequestErrorResponse"
         '401':
           description: Unauthorized - Returned if the X-Plex-Token is missing from the header or query.
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  errors:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        code:
-                          type: integer
-                          format: int32
-                          example: 1001
-                        message:
-                          type: string
-                          example: User could not be authenticated
-                          x-speakeasy-error-message: true
-                        status:
-                          type: integer
-                          format: int32
-                          example: 401
-                x-speakeasy-name-override: Unauthorized
+                $ref: "#/components/schemas/UnauthorizedErrorResponse"
   /users/signout:
     delete:
       operationId: signOut
@@ -6948,6 +6803,7 @@ paths:
           content:
             application/json:
               schema:
+                type: object
                 properties:
                   MediaContainer:
                     allOf:
@@ -7030,6 +6886,7 @@ paths:
           content:
             application/json:
               schema:
+                type: object
                 properties:
                   MediaContainer:
                     allOf:
@@ -7074,6 +6931,7 @@ paths:
           content:
             application/json:
               schema:
+                type: object
                 properties:
                   MediaContainer:
                     allOf:
@@ -9144,6 +9002,7 @@ paths:
           content:
             application/json:
               schema:
+                type: object
                 properties:
                   MediaContainer:
                     type: object
@@ -9317,7 +9176,7 @@ paths:
                       librarySectionTitle: Music
                       librarySectionUUID: d7fd8c81-a345-4e68-8113-92f23cb47e70
                       loudnessAnalysisVersion: '2'
-                      originallyAvailableAt: 2014-07-15
+                      originallyAvailableAt: "2014-07-15T00:00:00.000Z"
                       parentGuid: plex://artist/5d07bbfc403c6402904a60e7
                       parentKey: /library/metadata/251
                       parentRatingKey: '251'
@@ -9671,7 +9530,7 @@ paths:
                           videoProfile: main
                           videoResolution: '480'
                           width: 720
-                      originallyAvailableAt: 1997-02-17
+                      originallyAvailableAt: "1997-02-17T00:00:00.000Z"
                       parentGuid: plex://season/602e691b66dfdb002c0a5034
                       parentIndex: 4
                       parentKey: /library/metadata/149
@@ -10764,17 +10623,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  MediaContainer:
-                    allOf:
-                      - $ref: "#/components/schemas/MediaContainerWithStatus"
-                      - type: object
-                        properties:
-                          DVR:
-                            type: array
-                            items:
-                              $ref: "#/components/schemas/DVR"
+                $ref: "#/components/schemas/DVRResponse"
   /livetv/dvrs/{dvrId}/lineups:
     delete:
       operationId: deleteLineup
@@ -10824,17 +10673,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  MediaContainer:
-                    allOf:
-                      - $ref: "#/components/schemas/MediaContainerWithStatus"
-                      - type: object
-                        properties:
-                          DVR:
-                            type: array
-                            items:
-                              $ref: "#/components/schemas/DVR"
+                $ref: "#/components/schemas/DVRResponse"
     put:
       operationId: addLineup
       summary: Add a DVR Lineup
@@ -10883,17 +10722,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  MediaContainer:
-                    allOf:
-                      - $ref: "#/components/schemas/MediaContainerWithStatus"
-                      - type: object
-                        properties:
-                          DVR:
-                            type: array
-                            items:
-                              $ref: "#/components/schemas/DVR"
+                $ref: "#/components/schemas/DVRResponse"
   /livetv/dvrs/{dvrId}/prefs:
     put:
       operationId: setDVRPreferences
@@ -10942,17 +10771,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  MediaContainer:
-                    allOf:
-                      - $ref: "#/components/schemas/MediaContainerWithStatus"
-                      - type: object
-                        properties:
-                          DVR:
-                            type: array
-                            items:
-                              $ref: "#/components/schemas/DVR"
+                $ref: "#/components/schemas/DVRResponse"
   /livetv/dvrs/{dvrId}/reloadGuide:
     delete:
       operationId: stopDVRReload
@@ -11728,8 +11547,9 @@ paths:
                 type: object
                 properties:
                   authToken:
-                    type: string
-                    nullable: true
+                    type:
+                      - string
+                      - 'null'
                   clientIdentifier:
                     type: string
                   code:
@@ -11745,11 +11565,13 @@ paths:
                   newRegistration:
                     type: boolean
                   pmsIdentifier:
-                    type: string
-                    nullable: true
+                    type:
+                      - string
+                      - 'null'
                   pmsVersion:
-                    type: string
-                    nullable: true
+                    type:
+                      - string
+                      - 'null'
                   product:
                     type: string
                   qr:
@@ -13088,6 +12910,7 @@ paths:
           content:
             application/json:
               schema:
+                type: object
                 properties:
                   MediaContainer:
                     allOf:
@@ -15958,6 +15781,27 @@ components:
           type: string
     AllowSync:
       type: boolean
+    BadRequestErrorResponse:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+                example: 1000
+              message:
+                type: string
+                example: X-Plex-Client-Identifier is missing
+                x-speakeasy-error-message: true
+              status:
+                type: integer
+                format: int32
+                example: 400
+      x-speakeasy-name-override: BadRequest
     Bandwidth:
       type: object
       properties:
@@ -16032,6 +15876,18 @@ components:
           type: string
         lineupIdentifier:
           type: string
+    ChannelResponse:
+      type: object
+      properties:
+        MediaContainer:
+          allOf:
+            - $ref: "#/components/schemas/MediaContainer"
+            - type: object
+              properties:
+                Channel:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/Channel"
     Connection:
       type: object
       properties:
@@ -16264,6 +16120,18 @@ components:
           type: string
         uuid:
           type: string
+    DVRResponse:
+      type: object
+      properties:
+        MediaContainer:
+          allOf:
+            - $ref: "#/components/schemas/MediaContainerWithStatus"
+            - type: object
+              properties:
+                DVR:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/DVR"
     EPGCountry:
       type: object
       properties:
@@ -17354,7 +17222,7 @@ components:
           description: When present, in the format YYYY-MM-DD [HH:MM:SS] (the hours/minutes/seconds part is not always present). The air date, or a higher resolution release date for an item, depending on type. For example, episodes usually have air date like 1979-08-10 (we don't use epoch seconds because media existed prior to 1970). In some cases, recorded over-the-air content has higher resolution air date which includes a time component. Albums and movies may have day-resolution release dates as well.
           type: string
           format: date
-          example: 2022-12-14
+          example: "2022-12-14T00:00:00.000Z"
         originalTitle:
           description: When present, used to indicate an item's original title, e.g. a movie's foreign title.
           type: string
@@ -18181,7 +18049,7 @@ components:
         chromaSubsampling:
           description: Chroma subsampling format.
           type: string
-          example: 4:2:0
+          example: 14520
         closedCaptions:
           type: boolean
           example: true
@@ -18529,6 +18397,27 @@ components:
         topRight:
           description: The color (hex) for the top right quadrant.
           type: string
+    UnauthorizedErrorResponse:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+                example: 1001
+              message:
+                type: string
+                example: User could not be authenticated
+                x-speakeasy-error-message: true
+              status:
+                type: integer
+                format: int32
+                example: 401
+      x-speakeasy-name-override: Unauthorized
     UpdaterRelease:
       type: object
       properties:
@@ -18696,6 +18585,7 @@ components:
           default: false
         mailingListStatus:
           description: Your current mailing list status
+          type: string
           enum:
             - active
             - unsubscribed
@@ -18751,6 +18641,7 @@ components:
                   - string
                   - 'null'
               status:
+                type: string
                 enum:
                   - online
                   - offline
@@ -18901,6 +18792,7 @@ components:
                 - 'null'
             status:
               description: String representation of subscriptionActive
+              type: string
               enum:
                 - Inactive
                 - Active
@@ -19052,6 +18944,7 @@ components:
                   - 'null'
               status:
                 description: String representation of subscriptionActive
+                type: string
                 enum:
                   - Inactive
                   - Active
