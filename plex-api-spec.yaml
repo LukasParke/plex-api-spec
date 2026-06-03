@@ -9008,7 +9008,12 @@ paths:
                     type: object
                     properties:
                       allowSync:
-                        type: boolean
+                        oneOf:
+                          - type: boolean
+                          - type: string
+                            enum:
+                              - '0'
+                              - '1'
                       art:
                         type: string
                       content:
@@ -15701,7 +15706,12 @@ components:
                         - Special: There is a By Folder entry which allows browsing the media by the underlying filesystem structure, and there's a completely obsolete entry marked `"search": true` which used to be used to allow clients to build search dialogs on the fly.
                     type: string
                   allowSync:
-                    type: boolean
+                    oneOf:
+                      - type: boolean
+                      - enum:
+                          - '0'
+                          - '1'
+                        type: string
                   art:
                     type: string
                   Directory:
@@ -15780,7 +15790,12 @@ components:
           description: The key added to the queue
           type: string
     AllowSync:
-      type: boolean
+      oneOf:
+        - type: boolean
+        - type: string
+          enum:
+            - '0'
+            - '1'
     BadRequestErrorResponse:
       type: object
       properties:
@@ -16313,7 +16328,12 @@ components:
         agent:
           type: string
         allowSync:
-          type: boolean
+          oneOf:
+            - type: boolean
+            - type: string
+              enum:
+                - '0'
+                - '1'
         art:
           type: string
         composite:
@@ -16516,8 +16536,11 @@ components:
           format: int64
           example: 1
         optimizedForStreaming:
-          type: boolean
-          example: false
+          type: integer
+          format: int32
+          enum:
+            - 0
+            - 1
         Part:
           type: array
           items:
@@ -18037,6 +18060,12 @@ components:
           description: Indicates if the stream can auto-sync.
           type: boolean
           example: false
+          oneOf:
+            - type: boolean
+            - type: string
+              enum:
+                - '0'
+                - '1'
         channels:
           description: Number of audio channels (for audio streams).
           type: integer
