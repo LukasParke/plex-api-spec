@@ -197,45 +197,31 @@ tags:
       This describes the API for searching and applying updates to the Plex Media Server.
       Updates to the status can be observed via the Event API.
 x-tagGroups:
-  - name: General
+  - name: Server
     tags:
       - General
-      - Library
-      - Library Playlists
-      - Library Collections
-      - Status
       - Activities
-      - Updater
       - Butler
-      - Events
+      - Updater
       - Log
       - Preferences
-      - Download Queue
-      - UltraBlur
       - Transcoder
-  - name: Playback & Sessions
+  - name: Library
     tags:
-      - Status
-      - Timeline
-      - Play Queue
-      - Transcoder
-  - name: Media Provider
-    tags:
-      - Provider
-      - Content
+      - Library
       - Hubs
       - Search
-      - Rate
-      - Playlist
-      - Play Queue
-      - Timeline
-  - name: DVR
+  - name: Media
     tags:
+      - Timeline
       - DVRs
-      - Devices
       - EPG
-      - Subscriptions
       - Live TV
+      - Subscriptions
+      - Devices
+  - name: System
+    tags:
+      - Download Queue
 paths:
   /:
     get:
@@ -3762,6 +3748,7 @@ paths:
           $ref: "#/components/responses/400"
         '401':
           $ref: "#/components/responses/401"
+      x-speakeasy-retries-name: plextv-auth-retry
   /player/playback/audioStream:
     post:
       operationId: playerAudioStream
@@ -6439,6 +6426,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/UnauthorizedErrorResponse"
+      x-speakeasy-retries-name: plextv-auth-retry
   /users/signout:
     delete:
       operationId: signOut
@@ -6465,6 +6453,7 @@ paths:
           description: OK
         '400':
           $ref: "#/components/responses/400"
+      x-speakeasy-retries-name: plextv-auth-retry
   /webhooks:
     get:
       operationId: getWebhooks
@@ -12807,6 +12796,7 @@ paths:
           $ref: "#/components/responses/400"
         '401':
           $ref: "#/components/responses/401"
+      x-speakeasy-retries-name: plextv-auth-retry
   /playlists/{playlistId}:
     delete:
       operationId: deletePlaylist
@@ -16632,24 +16622,6 @@ components:
         example: abc123
       example: abc123
       x-speakeasy-name-override: Client-Identifier
-    X-Plex-Client-Profile-Extra:
-      name: X-Plex-Client-Profile-Extra
-      description: See [Profile Augmentations](#section/API-Info/Profile-Augmentations) .
-      in: header
-      schema:
-        type: string
-        example: add-limitation(scope=videoCodec&scopeName=*&type=upperBound&name=video.frameRate&value=60&replace=true)+append-transcode-target-codec(type=videoProfile&context=streaming&videoCodec=h264%2Chevc&audioCodec=aac&protocol=dash)
-      example: add-limitation(scope=videoCodec&scopeName=*&type=upperBound&name=video.frameRate&value=60&replace=true)+append-transcode-target-codec(type=videoProfile&context=streaming&videoCodec=h264%2Chevc&audioCodec=aac&protocol=dash)
-      x-speakeasy-name-override: Client-Profile-Extra
-    X-Plex-Client-Profile-Name:
-      name: X-Plex-Client-Profile-Name
-      description: Which built in Client Profile to use in the decision. Generally should only be used to specify the Generic profile.
-      in: header
-      schema:
-        type: string
-        example: generic
-      example: generic
-      x-speakeasy-name-override: Client-Profile-Name
     X-Plex-Container-Size:
       name: X-Plex-Container-Size
       description: |-
@@ -16748,15 +16720,6 @@ components:
         example: Plex for Roku
       example: Plex for Roku
       x-speakeasy-name-override: Product
-    X-Plex-Session-Identifier:
-      name: X-Plex-Session-Identifier
-      description: Unique per client playback session.  Used if a client can playback multiple items at a time (such as a browser with multiple tabs)
-      in: header
-      schema:
-        type: string
-        example: abc123
-      example: abc123
-      x-speakeasy-name-override: Session-Identifier
     X-Plex-Version:
       name: X-Plex-Version
       description: The version of the client application
@@ -16820,10 +16783,6 @@ components:
         text/html: {}
     '404':
       description: Not Found
-      content:
-        text/html: {}
-    '500':
-      description: Internal Server Error
       content:
         text/html: {}
     dvrRequestHandler_slash-get-responses-200:
@@ -19956,8 +19915,6 @@ components:
           type: integer
         state:
           type: integer
-    Title:
-      type: string
     TopUserAccount:
       type: object
       properties:
@@ -20032,8 +19989,6 @@ components:
           type: boolean
         transcodeHwRequested:
           type: boolean
-    Type:
-      type: string
     UltraBlurColors:
       type: object
       properties:
@@ -20070,48 +20025,6 @@ components:
                 format: int32
                 example: 401
       x-speakeasy-name-override: Unauthorized
-    UpdaterRelease:
-      type: object
-      properties:
-        added:
-          description: A list of what has been added in this version
-          type: string
-        downloadURL:
-          description: The URL of where this update is available
-          type: string
-        fixed:
-          description: A list of what has been fixed in this version
-          type: string
-        key:
-          description: The URL key of the update
-          type: string
-        state:
-          description: |-
-            The status of this update.
-
-            - available - This release is available
-            - downloading - This release is downloading
-            - downloaded - This release has been downloaded
-            - installing - This release is installing
-            - tonight - This release will be installed tonight
-            - skipped - This release has been skipped
-            - error - This release has an error
-            - notify - This release is only notifying it is available (typically because it cannot be installed on this setup)
-            - done - This release is complete
-          type: string
-          enum:
-            - available
-            - downloading
-            - downloaded
-            - installing
-            - tonight
-            - skipped
-            - error
-            - notify
-            - done
-        version:
-          description: The version available
-          type: string
     User:
       description: The user playing the content
       type: object
@@ -20852,3 +20765,14 @@ components:
         user:
           type: boolean
           example: true
+x-speakeasy-retries:
+  - name: plextv-auth-retry
+    backoff:
+      exponent: 2
+      initialInterval: 1000
+      maxElapsedTime: 300000
+      maxInterval: 30000
+      type: exponential
+    statusCodes:
+      - 429
+    strategy: backoff
