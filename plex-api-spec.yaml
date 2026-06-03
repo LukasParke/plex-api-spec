@@ -137,8 +137,12 @@ tags:
 
         - UDN: (string) A UUID for the device. This should be unique across models of a device at minimum.
         - URLBase: (string) The base HTTP URL for the device from which all of the other endpoints are hosted.
+
+      Note: This tag covers media grabber and network tuner devices only. For client device discovery, use `/clients` or `/resources`.
   - name: Download Queue
-    description: API Operations against the Download Queue
+    description: |-
+      API Operations against the Download Queue.
+      Note: The Download Queue is distinct from the Play Queue. The Download Queue manages offline/downloaded content, while the Play Queue manages active playback sessions.
   - name: DVRs
     description: The DVR provides means to watch and record live TV.  This section of endpoints describes how to setup the DVR itself
   - name: EPG
@@ -177,7 +181,9 @@ tags:
   - name: Preferences
     description: API Operations against the Preferences
   - name: Provider
-    description: Media providers are the starting points for the entire Plex Media Server media library API.  It defines the paths for the groups of endpoints.  The `/media/providers` should be the only hard-coded path in clients when accessing the media library.  Non-media library endpoints are outside the scope of the media provider.  See the description in See [the section in API Info](#section/API-Info/Media-Providers) for more information on how to use media providers.
+    description: |-
+      Media providers are the starting points for the entire Plex Media Server media library API.  It defines the paths for the groups of endpoints.  The `/media/providers` should be the only hard-coded path in clients when accessing the media library.  Non-media library endpoints are outside the scope of the media provider.  See the description in See [the section in API Info](#section/API-Info/Media-Providers) for more information on how to use media providers.
+      Note: Dynamic proxy paths such as `/{provider}/search`, `/{provider}/metadata`, and other provider-relative routes are resolved through the media provider API.
   - name: Rate
     description: Operations for rating media items (thumbs up/down, star ratings, etc.)
   - name: Search
@@ -505,9 +511,9 @@ paths:
           schema:
             type: string
         - name: uri
-          description: The URI of the item to mark as played.  See intro for description of the URIs
+          description: URI of the item to scrobble. Format is `library://<section-uuid>/item/<url-encoded-key>` or `plex://movie/<guid>` or `plex://episode/<guid>`.
           in: query
-          required: false
+          required: true
           schema:
             type: string
       responses:
@@ -703,9 +709,9 @@ paths:
           schema:
             type: string
         - name: uri
-          description: The URI of the item to mark as played.  See intro for description of the URIs
+          description: URI of the item to scrobble. Format is `library://<section-uuid>/item/<url-encoded-key>` or `plex://movie/<guid>` or `plex://episode/<guid>`.
           in: query
-          required: false
+          required: true
           schema:
             type: string
       responses:
@@ -4722,6 +4728,11 @@ paths:
               - audio
               - video
               - photo
+        - name: type
+          description: Filter by playlist type. Use 42 for optimized/conversion items.
+          in: query
+          schema:
+            type: integer
       responses:
         '200':
           description: OK
@@ -5574,6 +5585,16 @@ paths:
         - $ref: "#/components/parameters/X-Plex-Device-Vendor"
         - $ref: "#/components/parameters/X-Plex-Device-Name"
         - $ref: "#/components/parameters/X-Plex-Marketplace"
+        - name: X-Plex-Container-Start
+          description: Pagination start offset
+          in: query
+          schema:
+            type: integer
+        - name: X-Plex-Container-Size
+          description: Pagination page size
+          in: query
+          schema:
+            type: integer
         - name: accountID
           description: The account id to restrict view history
           in: query
@@ -10376,7 +10397,9 @@ paths:
       summary: Get items in the section
       tags:
         - Content
-      description: Get the items in a section, potentially filtering them
+      description: |-
+        Get the items in a section, potentially filtering them.
+        When `includeCollections=1` is passed, the response may also contain `Collection` items.
       security:
         - token:
             - admin
@@ -10863,6 +10886,41 @@ paths:
       responses:
         '200':
           $ref: "#/components/responses/200"
+  /library/sections/{sectionId}/artists:
+    get:
+      operationId: getSectionArtists
+      summary: Get Section Artists
+      tags:
+        - Library
+      description: Get artists for a music library section.
+      security:
+        - token:
+            - admin
+      parameters:
+        - $ref: "#/components/parameters/accepts"
+        - $ref: "#/components/parameters/X-Plex-Client-Identifier"
+        - $ref: "#/components/parameters/X-Plex-Product"
+        - $ref: "#/components/parameters/X-Plex-Version"
+        - $ref: "#/components/parameters/X-Plex-Platform"
+        - $ref: "#/components/parameters/X-Plex-Platform-Version"
+        - $ref: "#/components/parameters/X-Plex-Device"
+        - $ref: "#/components/parameters/X-Plex-Model"
+        - $ref: "#/components/parameters/X-Plex-Device-Vendor"
+        - $ref: "#/components/parameters/X-Plex-Device-Name"
+        - $ref: "#/components/parameters/X-Plex-Marketplace"
+        - name: sectionId
+          description: The id of the section
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MediaContainerWithMetadata"
   /library/sections/{sectionId}/arts:
     get:
       operationId: getArts
@@ -11155,6 +11213,41 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithArtwork"
+  /library/sections/{sectionId}/clips:
+    get:
+      operationId: getSectionClips
+      summary: Get Section Clips
+      tags:
+        - Library
+      description: Get clips for a library section.
+      security:
+        - token:
+            - admin
+      parameters:
+        - $ref: "#/components/parameters/accepts"
+        - $ref: "#/components/parameters/X-Plex-Client-Identifier"
+        - $ref: "#/components/parameters/X-Plex-Product"
+        - $ref: "#/components/parameters/X-Plex-Version"
+        - $ref: "#/components/parameters/X-Plex-Platform"
+        - $ref: "#/components/parameters/X-Plex-Platform-Version"
+        - $ref: "#/components/parameters/X-Plex-Device"
+        - $ref: "#/components/parameters/X-Plex-Model"
+        - $ref: "#/components/parameters/X-Plex-Device-Vendor"
+        - $ref: "#/components/parameters/X-Plex-Device-Name"
+        - $ref: "#/components/parameters/X-Plex-Marketplace"
+        - name: sectionId
+          description: The id of the section
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MediaContainerWithMetadata"
   /library/sections/{sectionId}/cluster:
     get:
       operationId: getCluster
@@ -11480,6 +11573,41 @@ paths:
       responses:
         '200':
           $ref: "#/components/responses/200"
+  /library/sections/{sectionId}/episodes:
+    get:
+      operationId: getSectionEpisodes
+      summary: Get Section Episodes
+      tags:
+        - Library
+      description: Get episodes for a TV library section.
+      security:
+        - token:
+            - admin
+      parameters:
+        - $ref: "#/components/parameters/accepts"
+        - $ref: "#/components/parameters/X-Plex-Client-Identifier"
+        - $ref: "#/components/parameters/X-Plex-Product"
+        - $ref: "#/components/parameters/X-Plex-Version"
+        - $ref: "#/components/parameters/X-Plex-Platform"
+        - $ref: "#/components/parameters/X-Plex-Platform-Version"
+        - $ref: "#/components/parameters/X-Plex-Device"
+        - $ref: "#/components/parameters/X-Plex-Model"
+        - $ref: "#/components/parameters/X-Plex-Device-Vendor"
+        - $ref: "#/components/parameters/X-Plex-Device-Name"
+        - $ref: "#/components/parameters/X-Plex-Marketplace"
+        - name: sectionId
+          description: The id of the section
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MediaContainerWithMetadata"
   /library/sections/{sectionId}/filters:
     get:
       operationId: getSectionFilters
@@ -11843,6 +11971,41 @@ paths:
       responses:
         '200':
           description: OK
+  /library/sections/{sectionId}/movies:
+    get:
+      operationId: getSectionMovies
+      summary: Get Section Movies
+      tags:
+        - Library
+      description: Get movies for a movie library section.
+      security:
+        - token:
+            - admin
+      parameters:
+        - $ref: "#/components/parameters/accepts"
+        - $ref: "#/components/parameters/X-Plex-Client-Identifier"
+        - $ref: "#/components/parameters/X-Plex-Product"
+        - $ref: "#/components/parameters/X-Plex-Version"
+        - $ref: "#/components/parameters/X-Plex-Platform"
+        - $ref: "#/components/parameters/X-Plex-Platform-Version"
+        - $ref: "#/components/parameters/X-Plex-Device"
+        - $ref: "#/components/parameters/X-Plex-Model"
+        - $ref: "#/components/parameters/X-Plex-Device-Vendor"
+        - $ref: "#/components/parameters/X-Plex-Device-Name"
+        - $ref: "#/components/parameters/X-Plex-Marketplace"
+        - name: sectionId
+          description: The id of the section
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MediaContainerWithMetadata"
   /library/sections/{sectionId}/nearest:
     get:
       operationId: getSonicallySimilar
@@ -12025,6 +12188,41 @@ paths:
       responses:
         '200':
           description: OK
+  /library/sections/{sectionId}/photos:
+    get:
+      operationId: getSectionPhotos
+      summary: Get Section Photos
+      tags:
+        - Library
+      description: Get photos for a photo library section.
+      security:
+        - token:
+            - admin
+      parameters:
+        - $ref: "#/components/parameters/accepts"
+        - $ref: "#/components/parameters/X-Plex-Client-Identifier"
+        - $ref: "#/components/parameters/X-Plex-Product"
+        - $ref: "#/components/parameters/X-Plex-Version"
+        - $ref: "#/components/parameters/X-Plex-Platform"
+        - $ref: "#/components/parameters/X-Plex-Platform-Version"
+        - $ref: "#/components/parameters/X-Plex-Device"
+        - $ref: "#/components/parameters/X-Plex-Model"
+        - $ref: "#/components/parameters/X-Plex-Device-Vendor"
+        - $ref: "#/components/parameters/X-Plex-Device-Name"
+        - $ref: "#/components/parameters/X-Plex-Marketplace"
+        - name: sectionId
+          description: The id of the section
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MediaContainerWithMetadata"
   /library/sections/{sectionId}/playlists:
     get:
       operationId: getSectionPlaylists
@@ -12329,6 +12527,41 @@ paths:
       responses:
         '200':
           description: OK
+  /library/sections/{sectionId}/shows:
+    get:
+      operationId: getSectionShows
+      summary: Get Section Shows
+      tags:
+        - Library
+      description: Get shows for a TV library section.
+      security:
+        - token:
+            - admin
+      parameters:
+        - $ref: "#/components/parameters/accepts"
+        - $ref: "#/components/parameters/X-Plex-Client-Identifier"
+        - $ref: "#/components/parameters/X-Plex-Product"
+        - $ref: "#/components/parameters/X-Plex-Version"
+        - $ref: "#/components/parameters/X-Plex-Platform"
+        - $ref: "#/components/parameters/X-Plex-Platform-Version"
+        - $ref: "#/components/parameters/X-Plex-Device"
+        - $ref: "#/components/parameters/X-Plex-Model"
+        - $ref: "#/components/parameters/X-Plex-Device-Vendor"
+        - $ref: "#/components/parameters/X-Plex-Device-Name"
+        - $ref: "#/components/parameters/X-Plex-Marketplace"
+        - name: sectionId
+          description: The id of the section
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MediaContainerWithMetadata"
   /library/sections/{sectionId}/sorts:
     get:
       operationId: getAvailableSorts
@@ -18031,6 +18264,7 @@ components:
   schemas:
     Activity:
       type: object
+      additionalProperties: true
       properties:
         title:
           description: A user-friendly title for this activity
@@ -18063,6 +18297,7 @@ components:
         uuid:
           description: The ID of the activity
           type: string
+      x-speakeasy-unknown-fields: true
     AddedQueueItem:
       type: object
       properties:
@@ -18651,6 +18886,7 @@ components:
         totalSize:
           type: integer
           example: 8
+      x-speakeasy-unknown-fields: true
     Image:
       description: Images such as movie posters and background artwork are represented by Image elements.
       type: object
@@ -19155,6 +19391,7 @@ components:
                   items:
                     $ref: "#/components/schemas/MediaGrabOperation"
     MediaContainerWithMetadata:
+      description: A MediaContainer that includes metadata items. When `includeCollections=1` is passed to endpoints such as `/library/sections/{sectionId}/all`, this container may also include `Collection` items.
       type: object
       properties:
         MediaContainer:
@@ -19859,6 +20096,7 @@ components:
         - key
         - title
         - type
+      x-speakeasy-unknown-fields: true
     NotificationContainer:
       type: object
       properties:
@@ -20477,6 +20715,7 @@ components:
     Session:
       description: Information about the playback session
       type: object
+      additionalProperties: true
       properties:
         title:
           description: Title of the media being played.
@@ -20506,6 +20745,7 @@ components:
           description: UUID of the playback session.
           type: string
           example: 5d776d057ae4e7001f65e7d0
+      x-speakeasy-unknown-fields: true
     Setting:
       description: A configuration setting or preference
       type: object
@@ -20924,6 +21164,7 @@ components:
         - codec
         - displayTitle
         - streamType
+      x-speakeasy-unknown-fields: true
     Tag:
       description: A variety of extra information about a metadata item is included as tags. These tags use their own element names such as `Genre`, `Writer`, `Directory`, and `Role`. Individual tag types may introduce their own extra attributes.
       type: object
@@ -21108,6 +21349,7 @@ components:
     UserPlexAccount:
       title: UserPlexAccount
       type: object
+      additionalProperties: true
       properties:
         title:
           description: The title of the account (username or friendly name)
@@ -21616,6 +21858,7 @@ components:
         - twoFactorEnabled
         - username
         - uuid
+      x-speakeasy-unknown-fields: true
     UserProfile:
       title: UserProfile
       type: object
