@@ -4214,7 +4214,6 @@ paths:
           $ref: "#/components/responses/400"
         '401':
           $ref: "#/components/responses/401"
-      x-speakeasy-retries-name: plextv-auth-retry
   /pins.xml:
     post:
       operationId: createLegacyPin
@@ -7062,7 +7061,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/UnauthorizedErrorResponse"
-      x-speakeasy-retries-name: plextv-auth-retry
   /users/signout:
     delete:
       operationId: signOut
@@ -7089,7 +7087,6 @@ paths:
           description: OK
         '400':
           $ref: "#/components/responses/400"
-      x-speakeasy-retries-name: plextv-auth-retry
   /webhooks:
     get:
       operationId: getWebhooks
@@ -14441,7 +14438,6 @@ paths:
           $ref: "#/components/responses/400"
         '401':
           $ref: "#/components/responses/401"
-      x-speakeasy-retries-name: plextv-auth-retry
   /playlists/{playlistId}:
     delete:
       operationId: deletePlaylist
@@ -22578,13 +22574,12 @@ components:
           type: boolean
           example: true
 x-speakeasy-retries:
-  - name: plextv-auth-retry
-    backoff:
-      exponent: 2
-      initialInterval: 1000
-      maxElapsedTime: 300000
-      maxInterval: 30000
-      type: exponential
-    statusCodes:
-      - 429
-    strategy: backoff
+  backoff:
+    exponent: 2
+    initialInterval: 1000
+    maxElapsedTime: 300000
+    maxInterval: 30000
+  retryConnectionErrors: true
+  statusCodes:
+    - '429'
+  strategy: backoff

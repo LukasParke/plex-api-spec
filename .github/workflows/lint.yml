@@ -27,9 +27,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: speakeasy-api/sdk-generation-action@v15
-        with:
-          speakeasy_version: latest
+      - name: Install Speakeasy
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/speakeasy-api/speakeasy/main/install.sh | sh
+          speakeasy --version
       - run: speakeasy lint openapi -s plex-api-spec.yaml
 
   vacuum:
@@ -41,9 +42,12 @@ jobs:
 
       - name: Install Vacuum
         run: |
-          curl -fsSL https://github.com/daveshanley/vacuum/releases/latest/download/vacuum_linux_amd64.tar.gz | tar -xz
+          gh release download --repo daveshanley/vacuum --pattern '*linux_x86_64.tar.gz'
+          tar -xzf vacuum_*_linux_x86_64.tar.gz
           sudo mv vacuum /usr/local/bin/
           vacuum version
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Lint with Vacuum
         run: |
