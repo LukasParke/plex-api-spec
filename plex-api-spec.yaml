@@ -95,6 +95,8 @@ tags:
       Activities are associated with HTTP replies via a special `X-Plex-Activity` header which contains the UUID of the activity.
 
       Activities are optional cancellable. If cancellable, they may be cancelled via the `DELETE` endpoint.
+  - name: Authentication
+    description: Plex Authentication operations
   - name: Butler
     description: The butler is responsible for running periodic tasks.  Some tasks run daily, others every few days, and some weekly.  These includes database maintenance, metadata updating, thumbnail generation, media analysis, and other tasks.
   - name: Collections
@@ -176,8 +178,14 @@ tags:
       You can visualize the play queue as a sliding window in the complete list of media queued for playback. This model is important when scaling to larger play queues (e.g. shuffling 40,000 audio tracks). The client only needs visibility into small areas of the queue at any given time, and the server can optimize access in this fashion.
       All created play queues will have an empty "Up Next" area - unless the item is an album and no `key` is provided. In this case the "Up Next" area will be populated by the contents of the album. This is to allow queueing of multiple albums - since the 'Add to Up Next' will insert after all the tracks. This means that If you're creating a PQ from an album, you can only shuffle it if you set `key`. This is due to the above implicit queueing of albums when no `key` is provided as well as the current limitation that you cannot shuffle a PQ with an "Up Next" area.
       The play queue window advances as the server receives timeline requests. The client needs to retrieve the play queue as the “now playing” item changes. There is no play queue API to update the playing item.
+  - name: Playback
+    description: Plex Playback operations
   - name: Playlist
     description: Media playlists that can be created and played back
+  - name: Playlists
+    description: Plex Playlists operations
+  - name: Plex
+    description: Plex Plex operations
   - name: Preferences
     description: API Operations against the Preferences
   - name: Provider
@@ -202,6 +210,8 @@ tags:
     description: |-
       This describes the API for searching and applying updates to the Plex Media Server.
       Updates to the status can be observed via the Event API.
+  - name: Users
+    description: Plex Users operations
 x-tagGroups:
   - name: Server
     tags:
@@ -262,6 +272,10 @@ paths:
                         type: array
                         items:
                           $ref: "#/components/schemas/Directory"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /:/eventsource/notifications:
     get:
       operationId: getNotifications
@@ -302,6 +316,10 @@ paths:
               schema:
                 type: string
                 format: binary
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /:/prefs:
     get:
       operationId: getAllPreferences
@@ -316,6 +334,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithSettings"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
     put:
       operationId: setPreferences
       summary: Set preferences
@@ -426,6 +448,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /:/rate:
     put:
       operationId: setRating
@@ -795,6 +821,10 @@ paths:
               schema:
                 type: string
                 format: binary
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /:/websockets/notifications:
     get:
       operationId: getWebsocketNotifications
@@ -823,6 +853,10 @@ paths:
             application/octet-stream:
               schema:
                 $ref: "#/components/schemas/NotificationContainer"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /accounts:
     get:
       operationId: getSystemAccounts
@@ -848,6 +882,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /actions/addToWatchlist:
     post:
       operationId: addToWatchlist
@@ -912,6 +950,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /actions/removeFromWatchlist:
     post:
       operationId: removeFromWatchlist
@@ -961,13 +1003,16 @@ paths:
                 type: object
                 properties:
                   MediaContainer:
-                    allOf:
-                      - type: object
-                        properties:
-                          Activity:
-                            type: array
-                            items:
-                              $ref: "#/components/schemas/Activity"
+                    type: object
+                    properties:
+                      Activity:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Activity"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /api/resources:
     get:
       operationId: getLegacyResources
@@ -984,6 +1029,10 @@ paths:
             application/xml:
               schema:
                 type: object
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /api/users/:
     get:
       operationId: getLegacyUsers
@@ -1000,6 +1049,10 @@ paths:
             application/xml:
               schema:
                 type: object
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /api/v2/user/webhooks:
     get:
       operationId: getUserWebhooks
@@ -1016,6 +1069,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/WebhookPayload"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
     post:
       operationId: addUserWebhook
       summary: Add User Webhook
@@ -1144,6 +1201,16 @@ paths:
           $ref: "#/components/responses/400"
         '401':
           $ref: "#/components/responses/401"
+      x-speakeasy-retries:
+        backoff:
+          exponent: 2
+          initialInterval: 1000
+          maxElapsedTime: 300000
+          maxInterval: 30000
+        retryConnectionErrors: true
+        statusCodes:
+          - '429'
+        strategy: backoff
   /auth/token:
     post:
       operationId: exchangeJWTToken
@@ -1181,6 +1248,16 @@ paths:
           $ref: "#/components/responses/400"
         '401':
           $ref: "#/components/responses/401"
+      x-speakeasy-retries:
+        backoff:
+          exponent: 2
+          initialInterval: 1000
+          maxElapsedTime: 300000
+          maxInterval: 30000
+        retryConnectionErrors: true
+        statusCodes:
+          - '429'
+        strategy: backoff
   /butler:
     delete:
       operationId: stopTasks
@@ -1194,6 +1271,10 @@ paths:
       responses:
         '200':
           $ref: "#/components/responses/200"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
     get:
       operationId: getTasks
       summary: Get all Butler tasks
@@ -1218,6 +1299,10 @@ paths:
                         type: array
                         items:
                           $ref: "#/components/schemas/ButlerTask"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
     post:
       operationId: startTasks
       summary: Start all Butler tasks
@@ -1236,6 +1321,10 @@ paths:
       responses:
         '200':
           $ref: "#/components/responses/200"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /claim/token.json:
     get:
       operationId: getClaimToken
@@ -1264,6 +1353,16 @@ paths:
           $ref: "#/components/responses/400"
         '401':
           $ref: "#/components/responses/401"
+      x-speakeasy-retries:
+        backoff:
+          exponent: 2
+          initialInterval: 1000
+          maxElapsedTime: 300000
+          maxInterval: 30000
+        retryConnectionErrors: true
+        statusCodes:
+          - '429'
+        strategy: backoff
   /clients:
     get:
       operationId: getClients
@@ -1297,6 +1396,10 @@ paths:
                         type: array
                         items:
                           $ref: "#/components/schemas/PlexDevice"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /cloud_server:
     get:
       operationId: getCloudServer
@@ -1354,6 +1457,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /diagnostics:
     get:
       operationId: getDiagnostics
@@ -1379,6 +1486,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /diagnostics/databases:
     get:
       operationId: downloadDatabaseDiagnostics
@@ -1404,6 +1515,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /diagnostics/logs:
     get:
       operationId: downloadLogBundle
@@ -1429,6 +1544,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /downloadQueue:
     post:
       operationId: createDownloadQueue
@@ -1456,6 +1575,10 @@ paths:
                             type: array
                             items:
                               $ref: "#/components/schemas/DownloadQueue"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /features:
     get:
       operationId: getFeatures
@@ -1471,7 +1594,13 @@ paths:
           content:
             application/json:
               schema:
-                type: object
+                allOf:
+                  - type: object
+                  - $ref: "#/components/schemas/Feature"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /friends:
     get:
       operationId: getFriends
@@ -1557,7 +1686,7 @@ paths:
   /home:
     get:
       operationId: getHome
-      summary: Get Home
+      summary: Get home hubs
       tags:
         - Users
       description: Get Plex Home user list.
@@ -1566,10 +1695,14 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /home/users:
     get:
       operationId: getHomeUsers
-      summary: Get Home Users
+      summary: Get home hubs Users
       tags:
         - Users
       description: Get the list of Plex Home users.
@@ -1665,6 +1798,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithHubs"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /hubs/continueWatching:
     get:
       operationId: getContinueWatching
@@ -1697,6 +1834,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithHubs"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /hubs/continueWatching/items:
     get:
       operationId: getContinueWatchingItems
@@ -1726,10 +1867,14 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithMetadata"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /hubs/home/recentlyAdded:
     get:
       operationId: getHomeRecentlyAdded
-      summary: Get Home Recently Added
+      summary: Get home hubs Recently Added
       tags:
         - Hubs
       description: Get the recently added hub for the home screen.
@@ -1755,6 +1900,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithHubs"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /hubs/items:
     get:
       operationId: getHubItems
@@ -1834,6 +1983,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithHubs"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /hubs/search:
     get:
       operationId: searchHubs
@@ -1997,6 +2150,10 @@ paths:
                       version:
                         description: The full version string of the PMS
                         type: string
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /ip:
     get:
       operationId: getIP
@@ -2046,6 +2203,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithDirectory"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/all:
     get:
       operationId: getLibraryItems
@@ -2082,6 +2243,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithMetadata"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/caches:
     delete:
       operationId: deleteCaches
@@ -2095,6 +2260,10 @@ paths:
       responses:
         '200':
           $ref: "#/components/responses/200"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/clean/bundles:
     put:
       operationId: cleanBundles
@@ -2108,6 +2277,10 @@ paths:
       responses:
         '200':
           $ref: "#/components/responses/200"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/collections:
     post:
       operationId: createCollection
@@ -2143,11 +2316,11 @@ paths:
             type: string
       responses:
         '200':
-          description: OK
+          description: The created collection
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/MediaContainerWithMetadata"
+                $ref: "#/components/schemas/Collection"
         '400':
           description: The uri is missing for a smart collection or the section could not be found
           content:
@@ -2214,6 +2387,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithMetadata"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/matches:
     get:
       operationId: getLibraryMatches
@@ -2316,10 +2493,14 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithMetadata"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/optimize:
     get:
       operationId: optimizeLibrary
-      summary: Optimize Library
+      summary: Get Optimize Library
       tags:
         - Library
       description: Optimize the database globally across all library sections.
@@ -2341,6 +2522,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
     post:
       operationId: optimizeLibraryPost
       summary: Optimize Library
@@ -2365,6 +2550,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
     put:
       operationId: optimizeDatabase
       summary: Optimize the Database
@@ -2394,6 +2583,10 @@ paths:
       responses:
         '200':
           $ref: "#/components/responses/200"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/randomArtwork:
     get:
       operationId: getRandomArtwork
@@ -2434,6 +2627,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithArtwork"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/recentlyAdded:
     get:
       operationId: getRecentlyAddedGlobal
@@ -2463,6 +2660,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithMetadata"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/search:
     get:
       operationId: searchDiscover
@@ -2532,6 +2733,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithDirectory"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/sections/all:
     get:
       operationId: getSections
@@ -2568,6 +2773,10 @@ paths:
                           title1:
                             description: Typically just "Plex Library"
                             type: string
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
     post:
       operationId: addSection
       summary: Add a library section
@@ -2601,6 +2810,7 @@ paths:
           required: true
           schema:
             type: integer
+          x-speakeasy-name-override: mediaType
         - name: scanner
           description: The scanner this section should use
           in: query
@@ -2672,6 +2882,10 @@ paths:
       responses:
         '200':
           $ref: "#/components/responses/LibrarySections"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/sections/prefs:
     get:
       operationId: getSectionsPrefs
@@ -2700,6 +2914,7 @@ paths:
           required: true
           schema:
             type: integer
+          x-speakeasy-name-override: mediaType
         - name: agent
           description: The metadata agent in use
           in: query
@@ -2833,6 +3048,10 @@ paths:
                                 thumb:
                                   description: The URL to a thumbnail for this tag
                                   type: string
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /livetv/dvrs:
     get:
       operationId: listDVRs
@@ -2867,6 +3086,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/DVRResponse"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
     post:
       operationId: createDVR
       summary: Create a DVR
@@ -2911,6 +3134,10 @@ paths:
       responses:
         '200':
           $ref: "#/components/responses/dvrRequestHandler_slash-get-responses-200"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /livetv/epg/channelmap:
     get:
       operationId: computeChannelMap
@@ -3065,6 +3292,10 @@ paths:
                             type: array
                             items:
                               $ref: "#/components/schemas/EPGCountry"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /livetv/epg/guide:
     get:
       operationId: getEPGGuide
@@ -3078,6 +3309,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /livetv/epg/languages:
     get:
       operationId: getAllLanguages
@@ -3111,6 +3346,10 @@ paths:
                             type: array
                             items:
                               $ref: "#/components/schemas/EPGLanguage"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /livetv/epg/lineup:
     get:
       operationId: getLineup
@@ -3238,6 +3477,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /livetv/recordings:
     get:
       operationId: getDVRRecordings
@@ -3263,6 +3506,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /livetv/sessions:
     get:
       operationId: getSessions
@@ -3297,6 +3544,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithMetadata"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /log:
     post:
       operationId: writeLog
@@ -3371,6 +3622,10 @@ paths:
       responses:
         '200':
           $ref: "#/components/responses/200"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /log/networked:
     post:
       operationId: enablePapertrail
@@ -3459,6 +3714,10 @@ paths:
                             type: array
                             items:
                               $ref: "#/components/schemas/MediaGrabber"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /media/grabbers/devices:
     get:
       operationId: listDevices
@@ -3485,6 +3744,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithDevice"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
     post:
       operationId: addDevice
       summary: Add a device
@@ -3553,6 +3816,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithDevice"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /media/providers:
     get:
       operationId: listProviders
@@ -3566,15 +3833,21 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  MediaContainer:
-                    type: object
+                allOf:
+                  - type: object
                     properties:
-                      Provider:
-                        type: array
-                        items:
-                          $ref: "#/components/schemas/Provider"
+                      MediaContainer:
+                        type: object
+                        properties:
+                          Provider:
+                            type: array
+                            items:
+                              $ref: "#/components/schemas/Provider"
+                  - $ref: "#/components/schemas/ProviderFeature"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
     post:
       operationId: addProvider
       summary: Add a media provider
@@ -3614,6 +3887,10 @@ paths:
       responses:
         '200':
           $ref: "#/components/responses/200"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /media/subscriptions:
     get:
       operationId: getAllSubscriptions
@@ -3709,6 +3986,7 @@ paths:
           schema:
             type: integer
           example: 2
+          x-speakeasy-name-override: mediaType
         - name: hints
           description: "Hints describing what we're looking for.  Note: The hint `ratingKey` is required for downloading from a PMS remote."
           in: query
@@ -3850,6 +4128,7 @@ paths:
           in: query
           schema:
             type: string
+          x-speakeasy-name-override: mediaType
         - name: targetLibrarySectionID
           description: Target library section ID.
           in: query
@@ -3939,6 +4218,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /myplex/account:
     get:
       operationId: getMyPlexAccount
@@ -3952,6 +4235,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /myplex/claim:
     post:
       operationId: claimServer
@@ -3995,6 +4282,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /photo/:/transcode:
     get:
       operationId: transcodeImage
@@ -4145,7 +4436,7 @@ paths:
   /ping:
     get:
       operationId: ping
-      summary: Ping
+      summary: Ping the server
       tags:
         - Authentication
       description: Health / latency check. No authentication required.
@@ -4155,6 +4446,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /pins:
     post:
       operationId: createOAuthPin
@@ -4214,6 +4509,16 @@ paths:
           $ref: "#/components/responses/400"
         '401':
           $ref: "#/components/responses/401"
+      x-speakeasy-retries:
+        backoff:
+          exponent: 2
+          initialInterval: 1000
+          maxElapsedTime: 300000
+          maxInterval: 30000
+        retryConnectionErrors: true
+        statusCodes:
+          - '429'
+        strategy: backoff
   /pins.xml:
     post:
       operationId: createLegacyPin
@@ -4230,6 +4535,20 @@ paths:
             application/xml:
               schema:
                 type: object
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
+      x-speakeasy-retries:
+        backoff:
+          exponent: 2
+          initialInterval: 1000
+          maxElapsedTime: 300000
+          maxInterval: 30000
+        retryConnectionErrors: true
+        statusCodes:
+          - '429'
+        strategy: backoff
   /pins/link:
     put:
       operationId: linkOAuthPin
@@ -4260,6 +4579,20 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
+      x-speakeasy-retries:
+        backoff:
+          exponent: 2
+          initialInterval: 1000
+          maxElapsedTime: 300000
+          maxInterval: 30000
+        retryConnectionErrors: true
+        statusCodes:
+          - '429'
+        strategy: backoff
   /player/playback/audioStream:
     post:
       operationId: playerAudioStream
@@ -4291,6 +4624,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /player/playback/mute:
     post:
       operationId: playerMute
@@ -4318,6 +4655,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /player/playback/pause:
     post:
       operationId: playerPause
@@ -4345,6 +4686,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /player/playback/play:
     post:
       operationId: playerPlay
@@ -4372,6 +4717,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /player/playback/playMedia:
     post:
       operationId: playerPlayMedia
@@ -4412,6 +4761,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /player/playback/refreshPlayQueue:
     post:
       operationId: playerRefreshplayqueue
@@ -4439,6 +4792,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /player/playback/seek:
     post:
       operationId: playerSeek
@@ -4471,6 +4828,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /player/playback/setParameters:
     post:
       operationId: playerSetParameters
@@ -4519,6 +4880,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /player/playback/setRating:
     post:
       operationId: playerSetRating
@@ -4550,6 +4915,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /player/playback/setState:
     post:
       operationId: playerSetState
@@ -4585,6 +4954,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /player/playback/setStreams:
     post:
       operationId: playerSetStreams
@@ -4624,6 +4997,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /player/playback/setTextStream:
     post:
       operationId: playerSetTextStream
@@ -4655,6 +5032,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /player/playback/setViewOffset:
     post:
       operationId: playerSetViewOffset
@@ -4686,6 +5067,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /player/playback/skipBy:
     post:
       operationId: playerSkipBy
@@ -4718,6 +5103,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /player/playback/skipTo:
     post:
       operationId: playerSkipTo
@@ -4750,6 +5139,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /player/playback/stepBack:
     post:
       operationId: playerStepback
@@ -4777,6 +5170,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /player/playback/stepForward:
     post:
       operationId: playerStepforward
@@ -4804,6 +5201,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /player/playback/stop:
     post:
       operationId: playerStop
@@ -4831,6 +5232,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /player/playback/subtitleStream:
     post:
       operationId: playerSubtitleStream
@@ -4862,6 +5267,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /player/playback/unmute:
     post:
       operationId: playerUnmute
@@ -4889,6 +5298,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /player/playback/videoStream:
     post:
       operationId: playerVideoStream
@@ -4920,6 +5333,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /player/playback/volume:
     post:
       operationId: playerVolume
@@ -4953,6 +5370,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /player/resources:
     get:
       operationId: getClientResources
@@ -4980,6 +5401,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /player/timeline/poll:
     get:
       operationId: playerPollTimeline
@@ -5007,6 +5432,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /playlists:
     delete:
       operationId: deletePlaylistByRatingKey
@@ -5038,6 +5467,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
     get:
       operationId: listPlaylists
       summary: List playlists
@@ -5071,6 +5504,7 @@ paths:
           in: query
           schema:
             type: integer
+          x-speakeasy-name-override: mediaType
       responses:
         '200':
           description: OK
@@ -5087,6 +5521,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithPlaylistMetadata"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
     post:
       operationId: createPlaylist
       summary: Create a Playlist
@@ -5127,7 +5565,7 @@ paths:
   /playlists/upload:
     post:
       operationId: uploadPlaylist
-      summary: Upload
+      summary: Upload media art
       tags:
         - Library Playlists
       description: Imports m3u playlists by passing a path on the server to scan for m3u-formatted playlist files, or a path to a single playlist file.
@@ -5207,6 +5645,7 @@ paths:
               - audio
               - video
               - photo
+          x-speakeasy-name-override: mediaType
         - name: key
           description: The key of the first item to play, defaults to the first in the play queue.
           in: query
@@ -5289,9 +5728,13 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithPlayQueue"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /resources:
     get:
-      operationId: get-server-resources
+      operationId: getServerResources
       summary: Get Server Resources
       tags:
         - Plex
@@ -5307,7 +5750,8 @@ paths:
           schema:
             allOf:
               - $ref: "#/components/schemas/BoolInt"
-              - default: 0
+              - type: integer
+                default: 0
           example: 1
         - name: includeRelay
           description: |-
@@ -5317,7 +5761,8 @@ paths:
           schema:
             allOf:
               - $ref: "#/components/schemas/BoolInt"
-              - default: 0
+              - type: integer
+                default: 0
           example: 1
         - name: includeIPv6
           description: Include IPv6 entries in the results
@@ -5325,7 +5770,8 @@ paths:
           schema:
             allOf:
               - $ref: "#/components/schemas/BoolInt"
-              - default: 0
+              - type: integer
+                default: 0
           example: 1
       responses:
         '200':
@@ -5396,7 +5842,7 @@ paths:
             text/html: {}
   /security/token:
     post:
-      operationId: getTransientToken
+      operationId: createTransientToken
       summary: Get Transient Tokens
       tags:
         - General
@@ -5423,6 +5869,7 @@ paths:
             type: string
             enum:
               - delegation
+          x-speakeasy-name-override: mediaType
         - name: scope
           description: The value `all` is the only supported `scope` parameter.
           in: query
@@ -5573,6 +6020,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /services/browse:
     get:
       operationId: browseFilesystem
@@ -5603,6 +6054,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /services/ultrablur/colors:
     get:
       operationId: getColors
@@ -5805,6 +6260,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /statistics/resources:
     get:
       operationId: getResourceStatistics
@@ -5830,6 +6289,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /status/sessions:
     get:
       operationId: listSessions
@@ -5875,6 +6338,10 @@ paths:
                                     User:
                                       $ref: "#/components/schemas/User"
                                 - $ref: "#/components/schemas/Metadata"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /status/sessions/background:
     get:
       operationId: getBackgroundTasks
@@ -5902,6 +6369,10 @@ paths:
                             type: array
                             items:
                               $ref: "#/components/schemas/TranscodeJob"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /status/sessions/history/all:
     get:
       operationId: listPlaybackHistory
@@ -6022,6 +6493,10 @@ paths:
                             type: array
                             items:
                               $ref: "#/components/schemas/PlaybackHistoryMetadata"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /status/sessions/terminate:
     post:
       operationId: terminateSession
@@ -6094,6 +6569,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /sync/items:
     get:
       operationId: getSyncItems
@@ -6116,6 +6595,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /sync/queue:
     get:
       operationId: getSyncQueue
@@ -6138,6 +6621,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /sync/refreshContent:
     put:
       operationId: refreshSyncContent
@@ -6160,6 +6647,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /sync/refreshSynclists:
     put:
       operationId: refreshSyncLists
@@ -6182,6 +6673,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /sync/transcodeQueue:
     get:
       operationId: getSyncTranscodeQueue
@@ -6204,6 +6699,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /system/agents:
     get:
       operationId: getMetadataAgents
@@ -6229,6 +6728,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /system/settings:
     get:
       operationId: getSystemSettings
@@ -6254,6 +6757,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /system/updates:
     get:
       operationId: checkForSystemUpdates
@@ -6279,6 +6786,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /transcode/sessions:
     get:
       operationId: getTranscodeSessions
@@ -6292,6 +6803,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /updater/apply:
     put:
       operationId: applyUpdates
@@ -6367,6 +6882,10 @@ paths:
       responses:
         '200':
           $ref: "#/components/responses/200"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /updater/status:
     get:
       operationId: getUpdatesStatus
@@ -6383,11 +6902,11 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  MediaContainer:
-                    allOf:
-                      - type: object
+                allOf:
+                  - type: object
+                    properties:
+                      MediaContainer:
+                        type: object
                         properties:
                           autoUpdateVersion:
                             description: The version of the updater (currently `1`)
@@ -6408,6 +6927,11 @@ paths:
                           status:
                             description: The current error code (`0` means no error)
                             type: integer
+                  - $ref: "#/components/schemas/UpdaterStatus"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /user:
     get:
       operationId: getTokenDetails
@@ -6478,7 +7002,7 @@ paths:
           $ref: "#/components/responses/401"
   /users:
     get:
-      operationId: get-users
+      operationId: getUsers
       summary: Get list of all connected users
       tags:
         - Users
@@ -6897,7 +7421,7 @@ paths:
           $ref: "#/components/responses/401"
   /users/signin:
     post:
-      operationId: post-users-sign-in-data
+      operationId: postUsersSignInData
       summary: Get User Sign In Data
       tags:
         - Authentication
@@ -6937,7 +7461,7 @@ paths:
                   default: false
                 verificationCode:
                   type: string
-                  example: 123456
+                  example: '123456'
               required:
                 - login
                 - password
@@ -7327,7 +7851,7 @@ paths:
               - embedded
               - segmented
               - unknown
-          example: Burn
+          example: burn
         - name: maxVideoBitrate
           description: Client-side maximum video bitrate cap in kbps
           in: query
@@ -7412,6 +7936,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithDecision"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /{transcodeType}/:/transcode/universal/fallback:
     post:
       operationId: triggerFallback
@@ -7629,7 +8157,7 @@ paths:
               - embedded
               - segmented
               - unknown
-          example: Burn
+          example: burn
         - name: maxVideoBitrate
           description: Client-side maximum video bitrate cap in kbps
           in: query
@@ -7974,6 +8502,10 @@ paths:
                             type: array
                             items:
                               $ref: "#/components/schemas/DownloadQueue"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /downloadQueue/{queueId}/add:
     post:
       operationId: addDownloadQueueItems
@@ -8057,6 +8589,10 @@ paths:
                             type: array
                             items:
                               $ref: "#/components/schemas/AddedQueueItem"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /downloadQueue/{queueId}/items:
     get:
       operationId: listDownloadQueueItems
@@ -8102,6 +8638,10 @@ paths:
                             type: array
                             items:
                               $ref: "#/components/schemas/DownloadQueueItem"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /downloads/{channel}.json:
     get:
       operationId: getPlexDownloads
@@ -8728,7 +9268,7 @@ paths:
   /library/metadata/{id}/arts:
     post:
       operationId: uploadArt
-      summary: Upload Art
+      summary: Upload media art Art
       tags:
         - Library
       description: Upload custom background art for a metadata item.
@@ -8764,6 +9304,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/metadata/{id}/children:
     get:
       operationId: getMetadataChildren
@@ -8798,6 +9342,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithMetadata"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/metadata/{id}/computePath:
     get:
       operationId: computeSonicPath
@@ -8832,6 +9380,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithMetadata"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/metadata/{id}/grandchildren:
     get:
       operationId: getMetadataGrandchildren
@@ -8866,6 +9418,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithMetadata"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/metadata/{id}/grandparent:
     get:
       operationId: getMetadataGrandparent
@@ -8900,6 +9456,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithMetadata"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/metadata/{id}/nearest:
     get:
       operationId: getNearestMetadata
@@ -8954,6 +9514,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithMetadata"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/metadata/{id}/onDeck:
     get:
       operationId: getMetadataOnDeck
@@ -8988,6 +9552,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithMetadata"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/metadata/{id}/parent:
     get:
       operationId: getMetadataParent
@@ -9022,10 +9590,14 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithMetadata"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/metadata/{id}/posters:
     post:
       operationId: uploadPoster
-      summary: Upload Poster
+      summary: Upload media art Poster
       tags:
         - Library
       description: Upload a custom poster image for a metadata item.
@@ -9061,6 +9633,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/metadata/{id}/reviews:
     get:
       operationId: getMetadataReviews
@@ -9091,6 +9667,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/metadata/{ids}:
     delete:
       operationId: deleteMetadataItem
@@ -9114,6 +9694,7 @@ paths:
         - $ref: "#/components/parameters/X-Plex-Device-Name"
         - $ref: "#/components/parameters/X-Plex-Marketplace"
         - name: ids
+          description: Comma-separated list of IDs
           in: path
           required: true
           schema:
@@ -9149,6 +9730,7 @@ paths:
         - $ref: "#/components/parameters/X-Plex-Device-Name"
         - $ref: "#/components/parameters/X-Plex-Marketplace"
         - name: ids
+          description: Comma-separated list of IDs
           in: path
           required: true
           schema:
@@ -9271,6 +9853,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithMetadata"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
     put:
       operationId: editMetadataItem
       summary: Edit a metadata item
@@ -9293,6 +9879,7 @@ paths:
         - $ref: "#/components/parameters/X-Plex-Device-Name"
         - $ref: "#/components/parameters/X-Plex-Marketplace"
         - name: ids
+          description: Comma-separated list of IDs
           in: path
           required: true
           schema:
@@ -9334,6 +9921,7 @@ paths:
         - $ref: "#/components/parameters/X-Plex-Device-Name"
         - $ref: "#/components/parameters/X-Plex-Marketplace"
         - name: ids
+          description: Comma-separated list of IDs
           in: path
           required: true
           schema:
@@ -9341,6 +9929,10 @@ paths:
       responses:
         '200':
           $ref: "#/components/responses/200"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/metadata/{ids}/allLeaves:
     get:
       operationId: getAllItemLeaves
@@ -9361,6 +9953,7 @@ paths:
         - $ref: "#/components/parameters/X-Plex-Device-Name"
         - $ref: "#/components/parameters/X-Plex-Marketplace"
         - name: ids
+          description: Comma-separated list of IDs
           in: path
           required: true
           schema:
@@ -9381,6 +9974,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithMetadata"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/metadata/{ids}/analyze:
     put:
       operationId: analyzeMetadata
@@ -9404,6 +10001,7 @@ paths:
         - $ref: "#/components/parameters/X-Plex-Device-Name"
         - $ref: "#/components/parameters/X-Plex-Marketplace"
         - name: ids
+          description: Comma-separated list of IDs
           in: path
           required: true
           schema:
@@ -9423,6 +10021,10 @@ paths:
       responses:
         '200':
           $ref: "#/components/responses/200"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/metadata/{ids}/chapterThumbs:
     put:
       operationId: generateThumbs
@@ -9446,6 +10048,7 @@ paths:
         - $ref: "#/components/parameters/X-Plex-Device-Name"
         - $ref: "#/components/parameters/X-Plex-Marketplace"
         - name: ids
+          description: Comma-separated list of IDs
           in: path
           required: true
           schema:
@@ -9458,6 +10061,10 @@ paths:
       responses:
         '200':
           $ref: "#/components/responses/200"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/metadata/{ids}/credits:
     put:
       operationId: detectCredits
@@ -9481,6 +10088,7 @@ paths:
         - $ref: "#/components/parameters/X-Plex-Device-Name"
         - $ref: "#/components/parameters/X-Plex-Marketplace"
         - name: ids
+          description: Comma-separated list of IDs
           in: path
           required: true
           schema:
@@ -9498,6 +10106,10 @@ paths:
       responses:
         '200':
           $ref: "#/components/responses/200"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/metadata/{ids}/extras:
     get:
       operationId: getExtras
@@ -9518,6 +10130,7 @@ paths:
         - $ref: "#/components/parameters/X-Plex-Device-Name"
         - $ref: "#/components/parameters/X-Plex-Marketplace"
         - name: ids
+          description: Comma-separated list of IDs
           in: path
           required: true
           schema:
@@ -9538,6 +10151,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithMetadata"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
     post:
       operationId: addExtras
       summary: Add to an item's extras
@@ -9558,6 +10175,7 @@ paths:
         - $ref: "#/components/parameters/X-Plex-Marketplace"
         - $ref: "#/components/parameters/title"
         - name: ids
+          description: Comma-separated list of IDs
           in: path
           required: true
           schema:
@@ -9600,6 +10218,7 @@ paths:
         - $ref: "#/components/parameters/X-Plex-Device-Name"
         - $ref: "#/components/parameters/X-Plex-Marketplace"
         - name: ids
+          description: Comma-separated list of IDs
           in: path
           required: true
           schema:
@@ -9621,6 +10240,10 @@ paths:
               schema:
                 type: string
                 format: binary
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/metadata/{ids}/index:
     put:
       operationId: startBifGeneration
@@ -9644,6 +10267,7 @@ paths:
         - $ref: "#/components/parameters/X-Plex-Device-Name"
         - $ref: "#/components/parameters/X-Plex-Marketplace"
         - name: ids
+          description: Comma-separated list of IDs
           in: path
           required: true
           schema:
@@ -9656,6 +10280,10 @@ paths:
       responses:
         '200':
           $ref: "#/components/responses/200"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/metadata/{ids}/intro:
     put:
       operationId: detectIntros
@@ -9679,6 +10307,7 @@ paths:
         - $ref: "#/components/parameters/X-Plex-Device-Name"
         - $ref: "#/components/parameters/X-Plex-Marketplace"
         - name: ids
+          description: Comma-separated list of IDs
           in: path
           required: true
           schema:
@@ -9698,6 +10327,10 @@ paths:
       responses:
         '200':
           $ref: "#/components/responses/200"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/metadata/{ids}/marker:
     post:
       operationId: createMarker
@@ -9718,6 +10351,7 @@ paths:
         - $ref: "#/components/parameters/X-Plex-Device-Name"
         - $ref: "#/components/parameters/X-Plex-Marketplace"
         - name: ids
+          description: Comma-separated list of IDs
           in: path
           required: true
           schema:
@@ -9728,6 +10362,7 @@ paths:
           required: true
           schema:
             type: integer
+          x-speakeasy-name-override: mediaType
         - name: startTimeOffset
           description: The start time of the marker
           in: query
@@ -9786,6 +10421,7 @@ paths:
         - $ref: "#/components/parameters/X-Plex-Device-Name"
         - $ref: "#/components/parameters/X-Plex-Marketplace"
         - name: ids
+          description: Comma-separated list of IDs
           in: path
           required: true
           schema:
@@ -9807,6 +10443,10 @@ paths:
       responses:
         '200':
           $ref: "#/components/responses/200"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/metadata/{ids}/matches:
     put:
       operationId: listMatches
@@ -9830,6 +10470,7 @@ paths:
         - $ref: "#/components/parameters/X-Plex-Device-Name"
         - $ref: "#/components/parameters/X-Plex-Marketplace"
         - name: ids
+          description: Comma-separated list of IDs
           in: path
           required: true
           schema:
@@ -9870,6 +10511,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithMetadata"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/metadata/{ids}/merge:
     put:
       operationId: mergeItems
@@ -9893,6 +10538,7 @@ paths:
         - $ref: "#/components/parameters/X-Plex-Device-Name"
         - $ref: "#/components/parameters/X-Plex-Marketplace"
         - name: ids
+          description: Comma-separated list of IDs
           in: path
           required: true
           schema:
@@ -9907,6 +10553,10 @@ paths:
       responses:
         '200':
           $ref: "#/components/responses/200"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/metadata/{ids}/prefs:
     put:
       operationId: setItemPreferences
@@ -9930,6 +10580,7 @@ paths:
         - $ref: "#/components/parameters/X-Plex-Device-Name"
         - $ref: "#/components/parameters/X-Plex-Marketplace"
         - name: ids
+          description: Comma-separated list of IDs
           in: path
           required: true
           schema:
@@ -9941,6 +10592,10 @@ paths:
       responses:
         '200':
           $ref: "#/components/responses/200"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/metadata/{ids}/refresh:
     put:
       operationId: refreshItemsMetadata
@@ -9964,6 +10619,7 @@ paths:
         - $ref: "#/components/parameters/X-Plex-Device-Name"
         - $ref: "#/components/parameters/X-Plex-Marketplace"
         - name: ids
+          description: Comma-separated list of IDs
           in: path
           required: true
           schema:
@@ -9986,6 +10642,10 @@ paths:
       responses:
         '200':
           $ref: "#/components/responses/200"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/metadata/{ids}/related:
     get:
       operationId: getRelatedItems
@@ -10006,6 +10666,7 @@ paths:
         - $ref: "#/components/parameters/X-Plex-Device-Name"
         - $ref: "#/components/parameters/X-Plex-Marketplace"
         - name: ids
+          description: Comma-separated list of IDs
           in: path
           required: true
           schema:
@@ -10017,6 +10678,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithHubs"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/metadata/{ids}/similar:
     get:
       operationId: listSimilar
@@ -10038,6 +10703,7 @@ paths:
         - $ref: "#/components/parameters/X-Plex-Marketplace"
         - $ref: "#/components/parameters/count"
         - name: ids
+          description: Comma-separated list of IDs
           in: path
           required: true
           schema:
@@ -10049,6 +10715,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithMetadata"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/metadata/{ids}/split:
     put:
       operationId: splitItem
@@ -10072,6 +10742,7 @@ paths:
         - $ref: "#/components/parameters/X-Plex-Device-Name"
         - $ref: "#/components/parameters/X-Plex-Marketplace"
         - name: ids
+          description: Comma-separated list of IDs
           in: path
           required: true
           schema:
@@ -10079,10 +10750,14 @@ paths:
       responses:
         '200':
           $ref: "#/components/responses/200"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/metadata/{ids}/subtitles:
     get:
-      operationId: addSubtitles
-      summary: Add subtitles
+      operationId: getSubtitles
+      summary: Get subtitles
       tags:
         - Library
       description: Add a subtitle to a metadata item
@@ -10102,6 +10777,7 @@ paths:
         - $ref: "#/components/parameters/X-Plex-Device-Name"
         - $ref: "#/components/parameters/X-Plex-Marketplace"
         - name: ids
+          description: Comma-separated list of IDs
           in: path
           required: true
           schema:
@@ -10145,6 +10821,10 @@ paths:
       responses:
         '200':
           $ref: "#/components/responses/200"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/metadata/{ids}/tree:
     get:
       operationId: getItemTree
@@ -10165,6 +10845,7 @@ paths:
         - $ref: "#/components/parameters/X-Plex-Device-Name"
         - $ref: "#/components/parameters/X-Plex-Marketplace"
         - name: ids
+          description: Comma-separated list of IDs
           in: path
           required: true
           schema:
@@ -10176,6 +10857,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithNestedMetadata"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/metadata/{ids}/unmatch:
     put:
       operationId: unmatch
@@ -10199,6 +10884,7 @@ paths:
         - $ref: "#/components/parameters/X-Plex-Device-Name"
         - $ref: "#/components/parameters/X-Plex-Marketplace"
         - name: ids
+          description: Comma-separated list of IDs
           in: path
           required: true
           schema:
@@ -10206,6 +10892,10 @@ paths:
       responses:
         '200':
           $ref: "#/components/responses/200"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/metadata/{ids}/users/top:
     get:
       operationId: listTopUsers
@@ -10229,6 +10919,7 @@ paths:
         - $ref: "#/components/parameters/X-Plex-Device-Name"
         - $ref: "#/components/parameters/X-Plex-Marketplace"
         - name: ids
+          description: Comma-separated list of IDs
           in: path
           required: true
           schema:
@@ -10250,6 +10941,10 @@ paths:
                             type: array
                             items:
                               $ref: "#/components/schemas/TopUserAccount"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/metadata/{ids}/voiceActivity:
     put:
       operationId: detectVoiceActivity
@@ -10273,6 +10968,7 @@ paths:
         - $ref: "#/components/parameters/X-Plex-Device-Name"
         - $ref: "#/components/parameters/X-Plex-Marketplace"
         - name: ids
+          description: Comma-separated list of IDs
           in: path
           required: true
           schema:
@@ -10292,6 +10988,10 @@ paths:
       responses:
         '200':
           $ref: "#/components/responses/200"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/metadata/augmentations/{augmentationId}:
     get:
       operationId: getAugmentationStatus
@@ -10484,6 +11184,10 @@ paths:
       responses:
         '200':
           $ref: "#/components/responses/200"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
     get:
       operationId: getLibraryDetails
       summary: Get a library section by id
@@ -10564,6 +11268,10 @@ paths:
                         type: string
                       viewMode:
                         type: integer
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
     put:
       operationId: editSection
       summary: Edit a library section
@@ -10673,6 +11381,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/sections/{sectionId}/albums:
     get:
       operationId: getAlbums
@@ -10750,6 +11462,10 @@ paths:
                   title1: Music
                   title2: By Album
                   viewGroup: album
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/sections/{sectionId}/all:
     get:
       operationId: listContent
@@ -10788,6 +11504,7 @@ paths:
           in: query
           schema:
             type: integer
+          x-speakeasy-name-override: mediaType
         - name: sort
           description: Sort key and direction (e.g. addedAt:desc, titleSort)
           in: query
@@ -10995,6 +11712,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithMetadata"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
     put:
       operationId: updateItems
       summary: Set the fields of the filtered items
@@ -11068,6 +11789,7 @@ paths:
           in: query
           schema:
             type: string
+          x-speakeasy-name-override: mediaType
         - name: filters
           description: The filters to apply to determine which items should be modified
           in: query
@@ -11254,6 +11976,10 @@ paths:
                   thumb: /:/resources/show.png
                   title1: TV Shows
                   viewGroup: show
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/sections/{sectionId}/analyze:
     put:
       operationId: startAnalysis
@@ -11285,6 +12011,10 @@ paths:
       responses:
         '200':
           $ref: "#/components/responses/200"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/sections/{sectionId}/artists:
     get:
       operationId: getSectionArtists
@@ -11320,6 +12050,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithMetadata"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/sections/{sectionId}/arts:
     get:
       operationId: getArts
@@ -11352,6 +12086,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithArtwork"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/sections/{sectionId}/autocomplete:
     get:
       operationId: autocomplete
@@ -11385,6 +12123,7 @@ paths:
           in: query
           schema:
             type: integer
+          x-speakeasy-name-override: mediaType
         - name: field.query
           description: The "field" stands in for any field, the value is a partial string for matching
           in: query
@@ -11444,6 +12183,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithMetadata"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/sections/{sectionId}/byDecade:
     get:
       operationId: getByDecade
@@ -11478,6 +12221,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithMetadata"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/sections/{sectionId}/byFolder:
     get:
       operationId: getByFolder
@@ -11512,6 +12259,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithMetadata"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/sections/{sectionId}/byResolution:
     get:
       operationId: getByResolution
@@ -11546,6 +12297,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithMetadata"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/sections/{sectionId}/byYear:
     get:
       operationId: getByYear
@@ -11580,6 +12335,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithMetadata"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/sections/{sectionId}/categories:
     get:
       operationId: getCategories
@@ -11612,6 +12371,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithArtwork"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/sections/{sectionId}/clips:
     get:
       operationId: getSectionClips
@@ -11647,6 +12410,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithMetadata"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/sections/{sectionId}/cluster:
     get:
       operationId: getCluster
@@ -11679,6 +12446,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithArtwork"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/sections/{sectionId}/collections:
     get:
       operationId: getCollections
@@ -11721,6 +12492,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithMetadata"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/sections/{sectionId}/common:
     get:
       operationId: getCommon
@@ -11754,6 +12529,7 @@ paths:
           in: query
           schema:
             type: integer
+          x-speakeasy-name-override: mediaType
       responses:
         '200':
           description: OK
@@ -11824,6 +12600,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithMetadata"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/sections/{sectionId}/edit:
     get:
       operationId: getSectionEdit
@@ -11854,6 +12634,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
     put:
       operationId: editLibrarySection
       summary: Edit Section
@@ -11883,10 +12667,14 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/sections/{sectionId}/emptyTrash:
     get:
       operationId: emptyTrash
-      summary: Empty Trash
+      summary: Get Empty Trash
       tags:
         - Library
       description: Permanently remove items from the trash for a library section.
@@ -11913,6 +12701,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
     post:
       operationId: emptyTrashPost
       summary: Empty Trash
@@ -11942,6 +12734,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
     put:
       operationId: emptyTrashPut
       summary: Empty section trash
@@ -11972,6 +12768,10 @@ paths:
       responses:
         '200':
           $ref: "#/components/responses/200"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/sections/{sectionId}/episodes:
     get:
       operationId: getSectionEpisodes
@@ -12007,6 +12807,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithMetadata"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/sections/{sectionId}/filters:
     get:
       operationId: getSectionFilters
@@ -12042,6 +12846,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithDirectory"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/sections/{sectionId}/firstCharacters:
     get:
       operationId: getFirstCharacters
@@ -12073,6 +12881,7 @@ paths:
           in: query
           schema:
             type: integer
+          x-speakeasy-name-override: mediaType
         - name: sort
           description: The metadata type to filter on
           in: query
@@ -12103,6 +12912,10 @@ paths:
                                 size:
                                   description: The number of items starting with this character
                                   type: integer
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/sections/{sectionId}/hubs:
     get:
       operationId: getLibrarySectionHubs
@@ -12137,6 +12950,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithHubs"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/sections/{sectionId}/indexes:
     delete:
       operationId: deleteIndexes
@@ -12168,6 +12985,10 @@ paths:
       responses:
         '200':
           $ref: "#/components/responses/200"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/sections/{sectionId}/intros:
     delete:
       operationId: deleteIntros
@@ -12199,6 +13020,10 @@ paths:
       responses:
         '200':
           $ref: "#/components/responses/200"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/sections/{sectionId}/label:
     get:
       operationId: getSectionLabels
@@ -12229,6 +13054,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/sections/{sectionId}/location:
     get:
       operationId: getFolders
@@ -12278,6 +13107,10 @@ paths:
                                   type: string
                                 key:
                                   type: string
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/sections/{sectionId}/match:
     get:
       operationId: matchSectionItems
@@ -12308,6 +13141,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/sections/{sectionId}/moment:
     get:
       operationId: listMoments
@@ -12340,6 +13177,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithArtwork"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/sections/{sectionId}/move:
     put:
       operationId: moveSection
@@ -12370,6 +13211,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/sections/{sectionId}/movies:
     get:
       operationId: getSectionMovies
@@ -12405,6 +13250,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithMetadata"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/sections/{sectionId}/nearest:
     get:
       operationId: getSonicallySimilar
@@ -12435,6 +13284,7 @@ paths:
           in: query
           schema:
             type: integer
+          x-speakeasy-name-override: mediaType
         - name: values
           description: The music analysis to center the search.  Typically obtained from the `musicAnalysis` of a track
           in: query
@@ -12463,6 +13313,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithMetadata"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/sections/{sectionId}/newest:
     get:
       operationId: getNewestForSection
@@ -12497,6 +13351,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithMetadata"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/sections/{sectionId}/onDeck:
     get:
       operationId: getOnDeckForSection
@@ -12528,10 +13386,14 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithMetadata"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/sections/{sectionId}/optimize:
     get:
       operationId: optimizeSection
-      summary: Optimize Section
+      summary: Get Optimize Section
       tags:
         - Library
       description: Optimize the database for a specific library section.
@@ -12558,6 +13420,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
     post:
       operationId: optimizeSectionPost
       summary: Optimize Section
@@ -12587,6 +13453,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/sections/{sectionId}/photos:
     get:
       operationId: getSectionPhotos
@@ -12622,6 +13492,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithMetadata"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/sections/{sectionId}/playlists:
     get:
       operationId: getSectionPlaylists
@@ -12656,6 +13530,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithPlaylistMetadata"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/sections/{sectionId}/prefs:
     get:
       operationId: getSectionPreferences
@@ -12692,6 +13570,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithSettings"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
     put:
       operationId: setSectionPreferences
       summary: Set section prefs
@@ -12730,6 +13612,10 @@ paths:
       responses:
         '200':
           $ref: "#/components/responses/200"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/sections/{sectionId}/recentlyAdded:
     get:
       operationId: getRecentlyAddedForSection
@@ -12761,6 +13647,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithMetadata"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/sections/{sectionId}/refresh:
     delete:
       operationId: cancelRefresh
@@ -12792,9 +13682,13 @@ paths:
       responses:
         '200':
           $ref: "#/components/responses/200"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
     get:
       operationId: refreshSection
-      summary: Refresh Section
+      summary: Get Refresh Section
       tags:
         - Library
       description: Trigger a metadata refresh for a library section.
@@ -12822,6 +13716,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
     post:
       operationId: refreshSectionPost
       summary: Refresh Section
@@ -12862,6 +13760,10 @@ paths:
       responses:
         '200':
           $ref: "#/components/responses/200"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/sections/{sectionId}/search:
     get:
       operationId: searchSection
@@ -12896,6 +13798,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithMetadata"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/sections/{sectionId}/settings:
     get:
       operationId: getSectionSettings
@@ -12926,6 +13832,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/sections/{sectionId}/shows:
     get:
       operationId: getSectionShows
@@ -12961,6 +13871,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithMetadata"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/sections/{sectionId}/sorts:
     get:
       operationId: getAvailableSorts
@@ -12993,6 +13907,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithSorts"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/sections/{sectionId}/tags:
     get:
       operationId: getSectionTags
@@ -13023,6 +13941,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/sections/{sectionId}/timeline:
     get:
       operationId: getSectionTimeline
@@ -13053,6 +13975,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/sections/{sectionId}/unmatch:
     get:
       operationId: unmatchSectionItems
@@ -13083,6 +14009,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/sections/{sectionId}/unwatched:
     get:
       operationId: getUnwatchedForSection
@@ -13117,6 +14047,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithMetadata"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/streams/{streamId}/levels:
     get:
       operationId: getStreamLevels
@@ -13247,6 +14181,10 @@ paths:
       responses:
         '200':
           $ref: "#/components/responses/200"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
     get:
       operationId: getDVR
       summary: Get a single DVR
@@ -13287,6 +14225,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/DVRResponse"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
     patch:
       operationId: patchDVRSettings
       summary: Update DVR Settings
@@ -13317,6 +14259,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
     put:
       operationId: updateDVRSettings
       summary: Update DVR Settings
@@ -13347,6 +14293,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /livetv/dvrs/{dvrId}/channels:
     get:
       operationId: getDVRChannels
@@ -13378,6 +14328,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /livetv/dvrs/{dvrId}/guide:
     get:
       operationId: getDVRGuide
@@ -13409,6 +14363,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /livetv/dvrs/{dvrId}/lineups:
     delete:
       operationId: deleteLineup
@@ -13459,6 +14417,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/DVRResponse"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
     put:
       operationId: addLineup
       summary: Add a DVR Lineup
@@ -13508,6 +14470,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/DVRResponse"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /livetv/dvrs/{dvrId}/prefs:
     put:
       operationId: setDVRPreferences
@@ -13562,6 +14528,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/DVRResponse"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /livetv/dvrs/{dvrId}/recordings:
     get:
       operationId: getDVRRecordingsByDVR
@@ -13593,6 +14563,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /livetv/dvrs/{dvrId}/reloadGuide:
     delete:
       operationId: stopDVRReload
@@ -13624,6 +14598,10 @@ paths:
       responses:
         '200':
           $ref: "#/components/responses/200"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
     post:
       operationId: reloadGuide
       summary: Tell a DVR to reload program guide
@@ -13661,6 +14639,10 @@ paths:
                 type: string
           content:
             text/html: {}
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /livetv/sessions/{sessionId}:
     delete:
       operationId: deleteLiveTVSession
@@ -13692,6 +14674,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
     get:
       operationId: getLiveTVSession
       summary: Get a single session
@@ -13732,6 +14718,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithMetadata"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /media/grabbers/devices/{deviceId}:
     delete:
       operationId: removeDevice
@@ -13948,6 +14938,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithDevice"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /media/grabbers/devices/{deviceId}/channels:
     get:
       operationId: getDevicesChannels
@@ -14047,6 +15041,10 @@ paths:
       responses:
         '200':
           $ref: "#/components/responses/200"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /media/grabbers/devices/{deviceId}/scan:
     delete:
       operationId: stopScan
@@ -14079,6 +15077,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithDevice"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
     post:
       operationId: scan
       summary: Tell a device to scan for channels
@@ -14121,6 +15123,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithDevice"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /media/grabbers/operations/{operationId}:
     delete:
       operationId: cancelGrab
@@ -14674,6 +15680,7 @@ paths:
             type: array
             items:
               type: integer
+          x-speakeasy-name-override: mediaType
       responses:
         '200':
           description: OK
@@ -14789,7 +15796,11 @@ paths:
             $ref: "#/components/schemas/BoolInt"
       responses:
         '200':
-          $ref: "#/components/responses/slash-post-responses-200"
+          description: The play queue
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlayQueueResponse"
         '400':
           $ref: "#/components/responses/400"
         '404':
@@ -14876,6 +15887,10 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MediaContainerWithPlaylistMetadata"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /playQueues/{playQueueId}/reset:
     put:
       operationId: resetPlayQueue
@@ -15078,6 +16093,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /sharings/{userId}:
     delete:
       operationId: removeShare
@@ -15252,6 +16271,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /system/agents/{agentId}:
     get:
       operationId: getMetadataAgentDetails
@@ -15282,6 +16305,10 @@ paths:
       responses:
         '200':
           description: OK
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /user/{uuid}/settings/opt_outs:
     get:
       operationId: getUserOptOuts
@@ -15510,7 +16537,7 @@ paths:
               - embedded
               - segmented
               - unknown
-          example: Burn
+          example: burn
         - name: maxVideoBitrate
           description: Client-side maximum video bitrate cap in kbps
           in: query
@@ -15770,6 +16797,10 @@ paths:
       responses:
         '200':
           $ref: "#/components/responses/200"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
     get:
       operationId: getDownloadQueueItems
       summary: Get download queue items
@@ -15827,6 +16858,10 @@ paths:
                             type: array
                             items:
                               $ref: "#/components/schemas/DownloadQueueItem"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /downloadQueue/{queueId}/items/{itemId}/restart:
     post:
       operationId: restartProcessingDownloadQueueItems
@@ -15871,6 +16906,10 @@ paths:
       responses:
         '200':
           $ref: "#/components/responses/200"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /hubs/sections/{sectionId}/manage/{identifier}:
     delete:
       operationId: deleteCustomHub
@@ -16021,8 +17060,8 @@ paths:
             text/html: {}
   /library/collections/{collectionId}/items/{itemId}:
     put:
-      operationId: deleteCollectionItem
-      summary: Delete an item from a collection
+      operationId: updateCollectionItem
+      summary: Update an item in a collection
       tags:
         - Library Collections
       description: Delete an item from a collection
@@ -16187,6 +17226,7 @@ paths:
         - $ref: "#/components/parameters/X-Plex-Device-Name"
         - $ref: "#/components/parameters/X-Plex-Marketplace"
         - name: ids
+          description: Comma-separated list of IDs
           in: path
           required: true
           schema:
@@ -16211,6 +17251,10 @@ paths:
       responses:
         '200':
           $ref: "#/components/responses/200"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
     put:
       operationId: updateItemArtwork
       summary: Set an item's artwork, theme, etc
@@ -16232,6 +17276,7 @@ paths:
         - $ref: "#/components/parameters/X-Plex-Device-Name"
         - $ref: "#/components/parameters/X-Plex-Marketplace"
         - name: ids
+          description: Comma-separated list of IDs
           in: path
           required: true
           schema:
@@ -16256,6 +17301,10 @@ paths:
       responses:
         '200':
           $ref: "#/components/responses/200"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/metadata/{ids}/marker/{marker}:
     delete:
       operationId: deleteMarker
@@ -16276,6 +17325,7 @@ paths:
         - $ref: "#/components/parameters/X-Plex-Device-Name"
         - $ref: "#/components/parameters/X-Plex-Marketplace"
         - name: ids
+          description: Comma-separated list of IDs
           in: path
           required: true
           schema:
@@ -16315,6 +17365,7 @@ paths:
         - $ref: "#/components/parameters/X-Plex-Device-Name"
         - $ref: "#/components/parameters/X-Plex-Marketplace"
         - name: ids
+          description: Comma-separated list of IDs
           in: path
           required: true
           schema:
@@ -16331,6 +17382,7 @@ paths:
           required: true
           schema:
             type: integer
+          x-speakeasy-name-override: mediaType
         - name: startTimeOffset
           description: The start time of the marker
           in: query
@@ -16382,6 +17434,7 @@ paths:
         - $ref: "#/components/parameters/X-Plex-Device-Name"
         - $ref: "#/components/parameters/X-Plex-Marketplace"
         - name: ids
+          description: Comma-separated list of IDs
           in: path
           required: true
           schema:
@@ -16537,6 +17590,10 @@ paths:
       responses:
         '200':
           $ref: "#/components/responses/200"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/streams/{streamId}.{ext}:
     delete:
       operationId: deleteStream
@@ -16797,6 +17854,10 @@ paths:
                             type: array
                             items:
                               $ref: "#/components/schemas/DVR"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
     put:
       operationId: addDeviceToDVR
       summary: Add a device to an existing DVR
@@ -16856,6 +17917,10 @@ paths:
                             type: array
                             items:
                               $ref: "#/components/schemas/DVR"
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /livetv/epg/countries/{country}/{epgId}/lineups:
     get:
       operationId: getCountriesLineups
@@ -17606,6 +18671,10 @@ paths:
               schema:
                 type: string
                 format: binary
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /{transcodeType}/:/transcode/universal/session/{sessionId}/{segmentId}.ts:
     get:
       operationId: getHLSSegment
@@ -17651,6 +18720,10 @@ paths:
               schema:
                 type: string
                 format: binary
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/metadata/{ids}/{element}/{timestamp}:
     get:
       operationId: getItemArtwork
@@ -17671,6 +18744,7 @@ paths:
         - $ref: "#/components/parameters/X-Plex-Device-Name"
         - $ref: "#/components/parameters/X-Plex-Marketplace"
         - name: ids
+          description: Comma-separated list of IDs
           in: path
           required: true
           schema:
@@ -17705,6 +18779,10 @@ paths:
               schema:
                 type: string
                 format: binary
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/parts/{partId}/{changestamp}/{filename}:
     get:
       operationId: getMediaPart
@@ -18278,7 +19356,7 @@ components:
           - embedded
           - segmented
           - unknown
-      example: Burn
+      example: burn
     subtitleSize:
       name: subtitleSize
       description: Percentage of original subtitle size to use when burning subtitles (100 is equivalent to original size, 50 is half, ect)
@@ -18502,25 +19580,7 @@ components:
       content:
         application/json:
           schema:
-            properties:
-              errors:
-                items:
-                  properties:
-                    code:
-                      example: 1001
-                      format: int32
-                      type: integer
-                    message:
-                      example: User could not be authenticated
-                      type: string
-                      x-speakeasy-error-message: true
-                    status:
-                      example: 401
-                      format: int32
-                      type: integer
-                  type: object
-                type: array
-            type: object
+            $ref: "#/components/schemas/Error"
     '403':
       description: Forbidden
       content:
@@ -18699,6 +19759,7 @@ components:
                   viewMode:
                     type: integer
                 type: object
+            type: object
     slash-post-responses-200:
       description: OK
       content:
@@ -19250,6 +20311,26 @@ components:
           type: string
         national:
           type: boolean
+    Error:
+      type: object
+      properties:
+        errors:
+          type: array
+          items:
+            type: object
+            properties:
+              code:
+                type: integer
+                format: int32
+                example: 1001
+              message:
+                type: string
+                example: User could not be authenticated
+                x-speakeasy-error-message: true
+              status:
+                type: integer
+                format: int32
+                example: 401
     Feature:
       type: object
       properties:
@@ -19408,11 +20489,9 @@ components:
         content:
           type: boolean
         contentChangedAt:
-          allOf:
-            - $ref: "#/components/schemas/PlexDateTime"
+          $ref: "#/components/schemas/PlexDateTime"
         createdAt:
-          allOf:
-            - $ref: "#/components/schemas/PlexDateTime"
+          $ref: "#/components/schemas/PlexDateTime"
         directory:
           type: boolean
         filters:
@@ -19438,15 +20517,13 @@ components:
           description: Indicates whether this library section is currently scanning
           type: boolean
         scannedAt:
-          allOf:
-            - $ref: "#/components/schemas/PlexDateTime"
+          $ref: "#/components/schemas/PlexDateTime"
         scanner:
           type: string
         thumb:
           $ref: "#/components/schemas/Thumb"
         updatedAt:
-          allOf:
-            - $ref: "#/components/schemas/PlexDateTime"
+          $ref: "#/components/schemas/PlexDateTime"
         uuid:
           description: The universally unique identifier for the library.
           type: string
@@ -20113,6 +21190,7 @@ components:
           type: integer
         Directory:
           description: Media Matching Hints
+          type: object
           additionalProperties: true
         durationTotal:
           description: Only included if `includeStorage` is specified
@@ -20129,6 +21207,7 @@ components:
             $ref: "#/components/schemas/MediaGrabOperation"
         Playlist:
           description: Media Matching Hints
+          type: object
           additionalProperties: true
         Setting:
           type: array
@@ -20145,6 +21224,7 @@ components:
           type: integer
         Video:
           description: Media Matching Hints
+          type: object
           additionalProperties: true
     MediaType:
       description: |-
@@ -20837,8 +21917,7 @@ components:
           type: integer
     PlexDateTime:
       description: Unix epoch datetime in seconds
-      type:
-        - integer
+      type: integer
       format: int64
       example: 1556281940
     PlexDateTimeISO:
