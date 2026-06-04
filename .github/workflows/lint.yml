@@ -40,10 +40,8 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Install Vacuum
-        env:
-          VACUUM_VERSION: "v0.29.0"
         run: |
-          curl -fsSL "https://github.com/daveshanley/vacuum/releases/download/${VACUUM_VERSION}/vacuum_linux_amd64.tar.gz" | tar -xz
+          curl -fsSL https://github.com/daveshanley/vacuum/releases/latest/download/vacuum_linux_amd64.tar.gz | tar -xz
           sudo mv vacuum /usr/local/bin/
           vacuum version
 
