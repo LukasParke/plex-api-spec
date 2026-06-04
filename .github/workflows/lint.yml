@@ -34,10 +34,36 @@ jobs:
 
   vacuum:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v4
+
       - name: Install Vacuum
+        env:
+          VACUUM_VERSION: "v0.29.0"
         run: |
-          curl -fsSL https://github.com/daveshanley/vacuum/releases/latest/download/vacuum_linux_amd64.tar.gz | tar -xz
+          curl -fsSL "https://github.com/daveshanley/vacuum/releases/download/${VACUUM_VERSION}/vacuum_linux_amd64.tar.gz" | tar -xz
           sudo mv vacuum /usr/local/bin/
-      - run: vacuum lint plex-api-spec.yaml
+          vacuum version
+
+      - name: Lint with Vacuum
+        run: |
+          vacuum lint plex-api-spec.yaml \
+            --details \
+            --pipeline-output \
+            --no-banner \
+            --min-score 25
+
+      - name: Generate Vacuum Report
+        if: always()
+        run: |
+          vacuum report plex-api-spec.yaml report-prefix --no-pretty
+
+      - name: Upload Vacuum Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vacuum-report
+          path: report-prefix*.json
+          retention-days: 30
