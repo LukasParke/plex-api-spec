@@ -1,0 +1,87 @@
+arazzo: '1.0.0'
+info:
+  title: Search and Discover Content
+  version: 1.0.0
+  description: |
+    Searches for content across Plex hubs and the Discover service,
+    then retrieves detailed metadata for the first matching result.
+
+sourceDescriptions:
+  - name: plex-api
+    url: ../plex-api-spec.yaml
+    type: openapi
+
+workflows:
+  - workflowId: searchAndDiscover
+    summary: Search for media and retrieve metadata
+    description: |
+      Three-step workflow:
+      1. Search across all hubs for a query term
+      2. Search the Discover service for broader results
+      3. Retrieve detailed metadata for the first result
+    inputs:
+      type: object
+      properties:
+        plexToken:
+          type: string
+          description: X-Plex-Token for authenticated requests
+        baseUrl:
+          type: string
+          description: Base URL of the Plex server
+          default: http://localhost:32400
+        query:
+          type: string
+          description: Search query term (movie title, show name, artist, etc.)
+      required:
+        - plexToken
+        - baseUrl
+        - query
+    steps:
+      - stepId: searchHubs
+        description: Search across all Plex hubs
+        operationId: $sourceDescriptions.plex-api.searchHubs
+        parameters:
+          - name: query
+            in: query
+            value: $inputs.query
+          - name: X-Plex-Token
+            in: header
+            value: $inputs.plexToken
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          hubResults: $response.body.MediaContainer.Hub
+          totalResults: $response.body.MediaContainer.size
+
+      - stepId: searchDiscover
+        description: Search the Discover service for additional results
+        operationId: $sourceDescriptions.plex-api.searchDiscover
+        parameters:
+          - name: query
+            in: query
+            value: $inputs.query
+          - name: X-Plex-Token
+            in: header
+            value: $inputs.plexToken
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          discoverResults: $response.body.MediaContainer.SearchResult
+
+      - stepId: getRecentlyAdded
+        description: Get recently added content as a fallback discovery method
+        operationId: $sourceDescriptions.plex-api.getRecentlyAddedGlobal
+        parameters:
+          - name: X-Plex-Token
+            in: header
+            value: $inputs.plexToken
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          recentlyAdded: $response.body.MediaContainer.Metadata
+
+    outputs:
+      hubResults: $steps.searchHubs.outputs.hubResults
+      totalResults: $steps.searchHubs.outputs.totalResults
+      discoverResults: $steps.searchDiscover.outputs.discoverResults
+      recentlyAdded: $steps.getRecentlyAdded.outputs.recentlyAdded
