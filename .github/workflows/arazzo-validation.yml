@@ -1,0 +1,175 @@
+name: Arazzo Workflow Validation
+
+on:
+  push:
+    branches: [main, feature/arbiter-discovery-pipeline]
+    paths:
+      - "workflows/**"
+      - "plex-api-spec.yaml"
+      - ".github/workflows/arazzo-validation.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "workflows/**"
+      - "plex-api-spec.yaml"
+      - ".github/workflows/arazzo-validation.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: arazzo-validation-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout plex-api-spec
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Clone Arbiter
+        run: |
+          git clone https://github.com/LukasParke/arbiter.git ../arbiter
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - name: Build Arbiter
+        run: |
+          cd ../arbiter
+          pnpm install --frozen-lockfile
+          pnpm run build
+
+      - name: Set up Docker Compose
+        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2320ee5c88db75466b73 # v3.10.0
+
+      - name: Start Plex Media Server
+        run: |
+          docker compose up -d pms
+          for i in {1..60}; do
+            if curl -sf http://localhost:32400/identity > /dev/null 2>&1; then
+              echo "PMS is ready"
+              break
+            fi
+            echo "Waiting for PMS... ($i/60)"
+            sleep 5
+          done
+        env:
+          PLEX_CLAIM_TOKEN: ${{ secrets.PLEX_CLAIM_TOKEN }}
+
+      - name: Extract Plex Token
+        id: plex-token
+        run: |
+          # Wait for Plex to finish initialization and generate token
+          for i in {1..30}; do
+            TOKEN=$(docker exec plex-api-test cat /config/Library/Application\ Support/Plex\ Media\ Server/Preferences.xml 2>/dev/null | grep -oP 'PlexOnlineToken="\K[^"]+' || true)
+            if [ -n "$TOKEN" ]; then
+              echo "token=$TOKEN" >> $GITHUB_OUTPUT
+              echo "Found Plex token"
+              break
+            fi
+            echo "Waiting for Plex token... ($i/30)"
+            sleep 5
+          done
+
+          # Fallback: use a test token if available
+          if [ -z "${{ steps.plex-token.outputs.token }}" ]; then
+            echo "token=test-token" >> $GITHUB_OUTPUT
+            echo "Using fallback test token"
+          fi
+
+      - name: Start Arbiter Proxy with Validation
+        run: |
+          cd ../arbiter
+          node dist/src/cli.js start \
+            --target http://localhost:32400 \
+            --port 8080 \
+            --docs-port 9000 \
+            --db-path /tmp/arbiter.db \
+            --validate \
+            --spec "$GITHUB_WORKSPACE/plex-api-spec.yaml" \
+            --verbose > /tmp/arbiter.log 2>&1 &
+          PROXY_PID=$!
+          echo "PROXY_PID=$PROXY_PID" >> $GITHUB_ENV
+
+          for i in {1..30}; do
+            if curl -sf http://localhost:8080/identity > /dev/null 2>&1; then
+              echo "Arbiter proxy is ready (with validation enabled)"
+              break
+            fi
+            echo "Waiting for arbiter proxy... ($i/30)"
+            sleep 1
+          done
+
+      - name: Install Redocly Respect
+        run: |
+          npm install -g @redocly/cli@latest
+          npx @redocly/cli@latest --version
+
+      - name: Lint Arazzo Workflows
+        run: |
+          for wf in workflows/*.yaml; do
+            echo "=== Linting $(basename $wf) ==="
+            npx @redocly/cli@latest lint "$wf" || exit 1
+          done
+
+      - name: Run Arazzo Tests via Arbiter Proxy
+        run: |
+          FAILED=0
+          for wf in workflows/*.yaml; do
+            echo ""
+            echo "========================================"
+            echo "=== Running $(basename $wf) ==="
+            echo "========================================"
+            npx @redocly/cli@latest respect "$wf" \
+              --input plexToken=${{ steps.plex-token.outputs.token }} \
+              --input baseUrl=http://localhost:8080 \
+              || FAILED=1
+          done
+          exit $FAILED
+
+      - name: Collect Arbiter Validation Log
+        if: always()
+        run: |
+          echo "=== Arbiter Proxy Validation Log ===" > /tmp/validation-summary.log
+          if [ -f /tmp/arbiter.log ]; then
+            grep -E "\[VALIDATE\]|Proxy error|Diff Report|Missing endpoints|Query param gaps" /tmp/arbiter.log >> /tmp/validation-summary.log || true
+            cat /tmp/validation-summary.log
+          fi
+
+      - name: Stop Arbiter Proxy
+        if: always()
+        run: |
+          kill $PROXY_PID 2>/dev/null || true
+          sleep 2
+
+      - name: Stop Plex Media Server
+        if: always()
+        run: docker compose down
+
+      - name: Upload Arbiter Log
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: arbiter-validation-log
+          path: /tmp/arbiter.log
+          retention-days: 7
+
+      - name: Upload Validation Summary
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: validation-summary
+          path: /tmp/validation-summary.log
+          retention-days: 7

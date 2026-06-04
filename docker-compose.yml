@@ -44,9 +44,9 @@ services:
       - "9000"
       - "--db-path"
       - "/data/arbiter.db"
-      - "--diff-against"
+      - "--validate"
+      - "--spec"
       - "/spec/plex-api-spec.yaml"
-      - "--exit-on-gap"
       - "--verbose"
     volumes:
       - ./test-data/capture:/data
