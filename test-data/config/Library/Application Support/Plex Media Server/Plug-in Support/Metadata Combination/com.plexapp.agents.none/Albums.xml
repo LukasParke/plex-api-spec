@@ -1,7 +1,0 @@
-
-<combine class="Album">
-    <sources>
-        <agent>com.plexapp.agents.none</agent>
-        <agent>com.plexapp.agents.localmedia</agent>
-    </sources>
-</combine>

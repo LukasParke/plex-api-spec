@@ -1,8 +1,0 @@
-
-<combine class="Album">
-    <sources>
-        <agent>com.plexapp.agents.localmedia</agent>
-        <agent>com.plexapp.agents.lastfm</agent>
-        <agent>com.plexapp.agents.lyricfind</agent>
-    </sources>
-</combine>
