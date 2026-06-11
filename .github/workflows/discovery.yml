@@ -1,0 +1,120 @@
+name: Nightly Discovery Pipeline
+
+on:
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: nightly-discovery
+  cancel-in-progress: true
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout plex-api-spec
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Clone Arbiter
+        run: |
+          git clone https://github.com/LukasParke/arbiter.git ../arbiter
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: latest
+
+      - name: Build Arbiter
+        run: |
+          cd ../arbiter
+          pnpm install --frozen-lockfile
+          pnpm run build
+
+      - name: Set up Docker Compose
+        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2320ee5c88db75466b73 # v3.10.0
+
+      - name: Start Plex Media Server
+        run: |
+          docker compose up -d pms
+          # Wait for PMS to be healthy
+          for i in {1..60}; do
+            if curl -sf http://localhost:32400/identity > /dev/null 2>&1; then
+              echo "PMS is ready"
+              break
+            fi
+            echo "Waiting for PMS... ($i/60)"
+            sleep 5
+          done
+        env:
+          PLEX_CLAIM_TOKEN: ${{ secrets.PLEX_CLAIM_TOKEN }}
+
+      - name: Start Arbiter Proxy
+        run: |
+          cd ../arbiter
+          node dist/src/cli.js start \
+            --target http://localhost:32400 \
+            --port 8080 \
+            --docs-port 9000 \
+            --db-path /tmp/arbiter.db \
+            --verbose &
+          PROXY_PID=$!
+          echo "PROXY_PID=$PROXY_PID" >> $GITHUB_ENV
+          # Wait for proxy
+          for i in {1..30}; do
+            if curl -sf http://localhost:8080/identity > /dev/null 2>&1; then
+              echo "Proxy is ready"
+              break
+            fi
+            echo "Waiting for proxy... ($i/30)"
+            sleep 1
+          done
+
+      - name: Generate Traffic
+        run: |
+          cd ../arbiter
+          node dist/src/cli.js generate-traffic \
+            --target http://localhost:8080 \
+            --output /tmp/traffic.jsonl
+
+      - name: Stop Arbiter Proxy
+        run: |
+          kill $PROXY_PID || true
+          sleep 2
+
+      - name: Run Diff
+        run: |
+          cd ../arbiter
+          node dist/src/cli.js diff \
+            --spec ./plex-api-spec/plex-api-spec.yaml \
+            --traffic /tmp/traffic.jsonl \
+            --output /tmp/diff_report.json
+
+      - name: Stop Plex Media Server
+        if: always()
+        run: docker compose down
+
+      - name: Upload diff report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: diff-report
+          path: /tmp/diff_report.json
+
+      - name: Upload traffic capture
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: traffic-capture
+          path: /tmp/traffic.jsonl

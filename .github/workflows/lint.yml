@@ -1,0 +1,71 @@
+name: Lint OpenAPI Spec
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "plex-api-spec.yaml"
+      - ".github/workflows/lint.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "plex-api-spec.yaml"
+      - ".github/workflows/lint.yml"
+
+jobs:
+  prettier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install prettier prettier-plugin-openapi
+      - run: npx prettier --check plex-api-spec.yaml
+
+  speakeasy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Speakeasy
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/speakeasy-api/speakeasy/main/install.sh | sh
+          speakeasy --version
+      - run: speakeasy lint openapi -s plex-api-spec.yaml
+
+  vacuum:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Vacuum
+        run: |
+          gh release download --repo daveshanley/vacuum --pattern '*linux_x86_64.tar.gz'
+          tar -xzf vacuum_*_linux_x86_64.tar.gz
+          sudo mv vacuum /usr/local/bin/
+          vacuum version
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Lint with Vacuum
+        run: |
+          vacuum lint plex-api-spec.yaml \
+            --details \
+            --pipeline-output \
+            --no-banner \
+            --min-score 25
+
+      - name: Generate Vacuum Report
+        if: always()
+        run: |
+          vacuum report plex-api-spec.yaml report-prefix --no-pretty
+
+      - name: Upload Vacuum Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vacuum-report
+          path: report-prefix*.json
+          retention-days: 30
