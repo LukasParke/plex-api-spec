@@ -1,0 +1,38 @@
+name: Validate canonical OpenAPI spec
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.18.1
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate OpenAPI spec
+        run: pnpm spec:validate
+
+      - name: Check generated reference is up to date
+        run: |
+          pnpm spec:generate-reference
+          git diff --exit-code docs/endpoints.md
+
+      - name: Dry-run breaking-change detection
+        run: pnpm spec:diff
