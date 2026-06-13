@@ -1,0 +1,23 @@
+{
+  "name": "@plexapi/plex-api-spec",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Canonical OpenAPI specification for Plex Media Server",
+  "packageManager": "pnpm@10.18.1",
+  "scripts": {
+    "spec:validate": "node scripts/validate-spec.mjs",
+    "spec:lint": "spectral lint plex-api-spec.yaml",
+    "spec:diff": "node scripts/openapi-diff.mjs",
+    "spec:generate-reference": "node scripts/generate-reference.mjs",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "@apidevtools/swagger-parser": "^12.1.0",
+    "@stoplight/spectral-cli": "^6.14.5",
+    "prettier": "^3.5.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
