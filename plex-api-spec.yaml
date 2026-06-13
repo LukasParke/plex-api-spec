@@ -6568,6 +6568,8 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/200'
+        '202':
+          $ref: '#/components/responses/202'
   /library/metadata/{ids}/extras:
     get:
       summary: Get an item's extras
@@ -7443,6 +7445,8 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/200'
+        '202':
+          $ref: '#/components/responses/202'
   /library/metadata/augmentations/{augmentationId}:
     get:
       summary: Get augmentation status
@@ -14021,6 +14025,10 @@ components:
   responses:
     '200':
       description: OK
+      content:
+        text/html: {}
+    '202':
+      description: Accepted
       content:
         text/html: {}
     '204':
