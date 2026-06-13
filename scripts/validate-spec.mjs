@@ -20,12 +20,10 @@ const SCHEMA_PATH = process.argv[2] ? resolve(process.cwd(), process.argv[2]) : 
 async function main() {
   console.log(`Validating ${SCHEMA_PATH}...`);
 
-  // SwaggerParser.validate is intentionally avoided: the spec uses OpenAPI 3.1
-  // constructs that swagger-parser's bundled schema rejects even though they are
-  // valid (e.g. server-variable descriptions). Dereferencing proves the document
-  // is parseable, syntactically valid YAML/JSON, and all $refs resolve.
-  const api = await SwaggerParser.dereference(SCHEMA_PATH);
-  console.log('✅ OpenAPI schema parsed and dereferenced successfully.');
+  await SwaggerParser.validate(SCHEMA_PATH);
+  console.log('✅ OpenAPI schema is valid.');
+
+  const api = await SwaggerParser.parse(SCHEMA_PATH);
   const pathCount = Object.keys(api.paths || {}).length;
   const schemaCount = Object.keys(api.components?.schemas || {}).length;
   console.log(`Paths: ${pathCount}, Schemas: ${schemaCount}`);

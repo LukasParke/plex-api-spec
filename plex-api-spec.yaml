@@ -9,29 +9,22 @@ servers:
   - url: "https://{IP-description}.{identifier}.plex.direct:{port}"
     variables:
       identifier:
-        description: The unique identifier of this particular PMS
         default: 0123456789abcdef0123456789abcdef
       IP-description:
-        description: A `-` separated string of the IPv4 or IPv6 address components
         default: 1-2-3-4
       port:
-        description: The Port number configured on the PMS. Typically (`32400`).
         default: '32400'
   - url: "{protocol}://{host}:{port}"
     variables:
       protocol:
-        description: The network protocol to use. Typically (`http` or `https`)
         default: http
       host:
-        description: "The Host of the PMS.\nIf using on a local network, this is the internal IP address of the server hosting the PMS.\nIf using on an external network, this is the external IP address for your network, and requires port forwarding.\nIf using a reverse proxy, this would be the external DNS domain for your network, and requires the proxy handle port forwarding. \n"
         default: localhost
       port:
-        description: "The Port number configured on the PMS. Typically (`32400`). \nIf using a reverse proxy, this would be the port number configured on the proxy.\n"
         default: '32400'
   - url: "{full_server_url}"
     variables:
       full_server_url:
-        description: The full manual URL to access the PMS
         default: http://localhost:32400
 security:
   - token:
