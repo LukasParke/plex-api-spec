@@ -9,29 +9,22 @@ servers:
   - url: "https://{IP-description}.{identifier}.plex.direct:{port}"
     variables:
       identifier:
-        description: The unique identifier of this particular PMS
         default: 0123456789abcdef0123456789abcdef
       IP-description:
-        description: A `-` separated string of the IPv4 or IPv6 address components
         default: 1-2-3-4
       port:
-        description: The Port number configured on the PMS. Typically (`32400`).
         default: '32400'
   - url: "{protocol}://{host}:{port}"
     variables:
       protocol:
-        description: The network protocol to use. Typically (`http` or `https`)
         default: http
       host:
-        description: "The Host of the PMS.\nIf using on a local network, this is the internal IP address of the server hosting the PMS.\nIf using on an external network, this is the external IP address for your network, and requires port forwarding.\nIf using a reverse proxy, this would be the external DNS domain for your network, and requires the proxy handle port forwarding. \n"
         default: localhost
       port:
-        description: "The Port number configured on the PMS. Typically (`32400`). \nIf using a reverse proxy, this would be the port number configured on the proxy.\n"
         default: '32400'
   - url: "{full_server_url}"
     variables:
       full_server_url:
-        description: The full manual URL to access the PMS
         default: http://localhost:32400
 security:
   - token:
@@ -157,6 +150,12 @@ tags:
     description: |
       This describes the API for searching and applying updates to the Plex Media Server.
       Updates to the status can be observed via the Event API.
+  - name: Authentication
+    description: Authentication-related endpoints.
+  - name: Plex
+    description: General Plex endpoints.
+  - name: Users
+    description: User account endpoints.
 x-tagGroups:
   - name: General
     tags:
@@ -507,7 +506,7 @@ paths:
           in: query
           schema:
             type: string
-          example: 123
+          example: "123"
         - name: time
           description: The current time offset of playback in ms.
           in: query
@@ -1374,7 +1373,7 @@ paths:
           in: query
           schema:
             type: string
-            format: url
+            format: uri
           example: file:///storage%2Femulated%2F0%2FArcher-S01E01.mkv
         - name: virtualFilePath
           description: A virtual path to use when the url is opaque.
@@ -1931,7 +1930,7 @@ paths:
             type: array
             items:
               type: string
-          example: device[]=device://tv.plex.grabbers.hdhomerun/1053C0CA
+          example: ["device[]=device://tv.plex.grabbers.hdhomerun/1053C0CA"]
         - name: language
           description: The language.
           in: query
@@ -3751,7 +3750,7 @@ paths:
             type: array
             items:
               type: string
-          example: viewedAt:desc,accountID
+          example: ["viewedAt:desc,accountID"]
       responses:
         '200':
           description: OK
@@ -4156,7 +4155,7 @@ paths:
           in: query
           schema:
             type: string
-            pattern: ^\d[x:]\d$
+            pattern: ^\d+[x:]\d+$
           example: 1080x1080
         - name: protocol
           description: |
@@ -4196,7 +4195,7 @@ paths:
               - embedded
               - segmented
               - unknown
-          example: Burn
+          example: burn
         - name: videoBitrate
           description: Target video bitrate (in kbps).
           in: query
@@ -4217,7 +4216,7 @@ paths:
           in: query
           schema:
             type: string
-            pattern: ^\d[x:]\d$
+            pattern: ^\d+[x:]\d+$
           example: 1080x1080
         - name: X-Plex-Client-Identifier
           description: Unique per client.
@@ -4260,7 +4259,7 @@ paths:
           in: header
           schema:
             type: string
-          example: 135
+          example: "135"
         - name: X-Plex-Session-Identifier
           description: Unique per client playback session.  Used if a client can playback multiple items at a time (such as a browser with multiple tabs)
           in: header
@@ -4447,7 +4446,7 @@ paths:
           in: query
           schema:
             type: string
-            pattern: ^\d[x:]\d$
+            pattern: ^\d+[x:]\d+$
           example: 1080x1080
         - name: protocol
           description: |
@@ -4487,7 +4486,7 @@ paths:
               - embedded
               - segmented
               - unknown
-          example: Burn
+          example: burn
         - name: videoBitrate
           description: Target video bitrate (in kbps).
           in: query
@@ -4508,7 +4507,7 @@ paths:
           in: query
           schema:
             type: string
-            pattern: ^\d[x:]\d$
+            pattern: ^\d+[x:]\d+$
           example: 1080x1080
         - name: X-Plex-Client-Identifier
           description: Unique per client.
@@ -4551,7 +4550,7 @@ paths:
           in: header
           schema:
             type: string
-          example: 135
+          example: "135"
         - name: X-Plex-Session-Identifier
           description: Unique per client playback session.  Used if a client can playback multiple items at a time (such as a browser with multiple tabs)
           in: header
@@ -4694,7 +4693,7 @@ paths:
                   default: false
                 verificationCode:
                   type: string
-                  example: 123456
+                  example: "123456"
         description: Login credentials
       responses:
         '201':
@@ -9776,7 +9775,7 @@ paths:
             type: array
             items:
               type: string
-          example: 46.1,44.1,45.1
+          example: ["46.1", "44.1", "45.1"]
       responses:
         '200':
           description: OK
@@ -10989,7 +10988,7 @@ paths:
           in: query
           schema:
             type: string
-            pattern: ^\d[x:]\d$
+            pattern: ^\d+[x:]\d+$
           example: 1080x1080
         - name: protocol
           description: |
@@ -11029,7 +11028,7 @@ paths:
               - embedded
               - segmented
               - unknown
-          example: Burn
+          example: burn
         - name: videoBitrate
           description: Target video bitrate (in kbps).
           in: query
@@ -11050,7 +11049,7 @@ paths:
           in: query
           schema:
             type: string
-            pattern: ^\d[x:]\d$
+            pattern: ^\d+[x:]\d+$
           example: 1080x1080
         - name: X-Plex-Client-Identifier
           description: Unique per client.
@@ -11093,7 +11092,7 @@ paths:
           in: header
           schema:
             type: string
-          example: 135
+          example: "135"
         - name: X-Plex-Session-Identifier
           description: Unique per client playback session.  Used if a client can playback multiple items at a time (such as a browser with multiple tabs)
           in: header
@@ -12935,7 +12934,7 @@ paths:
               uri: library://82503060-0d68-4603-b594-8b071d54819e/item/%2Flibrary%2Fmetadata%2F146
             locationID: -1
             Policy:
-              value: ''
+              value: 0
               scope: all
               unwatched: 0
             target: ''
@@ -13743,7 +13742,7 @@ components:
       in: query
       schema:
         type: string
-        pattern: ^\d[x:]\d$
+        pattern: ^\d+[x:]\d+$
       example: 1080x1080
     protocol:
       name: protocol
@@ -13785,7 +13784,7 @@ components:
           - embedded
           - segmented
           - unknown
-      example: Burn
+      example: burn
     subtitleSize:
       name: subtitleSize
       description: Percentage of original subtitle size to use when burning subtitles (100 is equivalent to original size, 50 is half, ect)
@@ -13861,7 +13860,7 @@ components:
       in: query
       schema:
         type: string
-        pattern: ^\d[x:]\d$
+        pattern: ^\d+[x:]\d+$
       example: 1080x1080
     X-Plex-Client-Identifier:
       name: X-Plex-Client-Identifier
@@ -15350,16 +15349,7 @@ components:
                 description: |
                   The unique identifier for the Guid. Can be prefixed with imdb://, tmdb://, tvdb://
                 pattern: "^(imdb|tmdb|tvdb)://.+$"
-                example:
-                  imdbExample:
-                    summary: IMDB example
-                    value: imdb://tt13015952
-                  tmdbExample:
-                    summary: TMDB example
-                    value: tmdb://2434012
-                  tvdbExample:
-                    summary: TVDB example
-                    value: tvdb://7945991
+                example: imdb://tt13015952
         hero:
           description: When present, the URL for a hero image for the item.
           type: string
@@ -16371,7 +16361,7 @@ components:
           description: List of devices your allowed to use with this account
           items:
             type: string
-          example: '[]'
+          example: []
         guest:
           type: boolean
           description: If the account is a Plex Home guest user
@@ -16803,7 +16793,6 @@ components:
           type:
             - string
             - 'null'
-          example: null
     PlexDateTime:
       type:
         - integer
@@ -16858,7 +16847,6 @@ components:
             - 'null'
           items:
             type: string
-          example: null
         defaultSubtitleLanguage:
           description: The preferred subtitle language for the account
           type:
@@ -16872,7 +16860,6 @@ components:
             - 'null'
           items:
             type: string
-          example: null
         autoSelectSubtitle:
           allOf:
             - type: integer
@@ -16963,7 +16950,6 @@ components:
             - 'null'
           items:
             type: string
-          example: null
     MediaQuery:
       description: |
         A querystring-based filtering language used to select subsets of media. When provided as an object, properties are serialized as a querystring using form style with explode.

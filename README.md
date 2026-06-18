@@ -1,16 +1,33 @@
 # Plex Media Server OpenAPI Specification
 
-An Open Source OpenAPI Specification for Plex Media Server
+An open source OpenAPI 3.1 specification for the Plex Media Server API.
 
-Automation and SDKs provided by [Speakeasy](https://speakeasyapi.dev/)
+- **Live docs:** [plexapi.dev](https://plexapi.dev)
+- **Docs repository:** [LukasParke/plex-mintlify-docs](https://github.com/LukasParke/plex-mintlify-docs)
+- **Original developer docs (being consolidated):** [LukasParke/plexapi-dev-docs](https://github.com/LukasParke/plexapi-dev-docs)
 
-## Documentation
+## What's in this repository
 
-[API Documentation](https://plexapi.dev)
+| File / directory | Purpose |
+|------------------|---------|
+| `plex-api-spec.yaml` | Canonical OpenAPI 3.1 contract for the Plex Media Server API. |
+| `docs/` | Contributor documentation: contract decisions and SDK generation strategy. |
+| `scripts/` | Validation, lint, diff, and reference-generation tooling. |
+| `.github/workflows/spec-validate.yml` | CI that validates the spec on every PR and push to `main`. |
+
+## Validation
+
+```bash
+pnpm install
+pnpm spec:validate
+pnpm spec:lint
+pnpm spec:diff
+```
 
 ## SDKs
 
-The following SDKs are generated from the OpenAPI Specification. They are automatically generated and may not be fully tested. If you find any issues, please open an issue on the respective repository.
+Automation and SDKs are provided by [Speakeasy](https://www.speakeasyapi.dev/).
+The following community SDKs are generated from this specification:
 
 | Language              | Repository                                        | Releases                                                                                         | Other                                                   |
 | --------------------- | ------------------------------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------- |
@@ -22,3 +39,9 @@ The following SDKs are generated from the OpenAPI Specification. They are automa
 | PHP                   | [GitHub](https://github.com/LukeHagar/plexphp)    | [Releases](https://github.com/LukeHagar/plexphp/releases)                                        | -                                                       |
 | Java                  | [GitHub](https://github.com/LukeHagar/plexjava)   | [Releases](https://github.com/LukeHagar/plexjava/releases)                                       | -                                                       |
 | C#                    | [GitHub](https://github.com/LukeHagar/plexcsharp) | [Releases](https://github.com/LukeHagar/plexcsharp/releases)                                     | -                                                       |
+
+## Contributing
+
+See [docs/api-contract.md](./docs/api-contract.md) and [docs/sdk-generation-strategy.md](./docs/sdk-generation-strategy.md) for design context.
+
+To propose changes to the spec, open a pull request. The CI check `spec:validate` must pass before merge.
