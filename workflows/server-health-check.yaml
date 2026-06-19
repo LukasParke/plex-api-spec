@@ -1,0 +1,85 @@
+arazzo: '1.0.0'
+info:
+  title: Plex Server Health Check
+  version: 1.0.0
+  description: |
+    Verifies that a Plex Media Server is online and accessible by checking
+    its identity, capabilities, and features. This workflow is useful for
+    monitoring, CI/CD health checks, and onboarding validation.
+
+sourceDescriptions:
+  - name: plex-api
+    url: ../plex-api-spec.yaml
+    type: openapi
+
+workflows:
+  - workflowId: healthCheck
+    summary: Check Plex server health and capabilities
+    description: |
+      Performs a lightweight health check against a Plex Media Server.
+      Steps:
+      1. Verify the server identity (name, version, machine ID)
+      2. Retrieve server features and capabilities
+      3. Verify the server responds with valid data
+    inputs:
+      type: object
+      properties:
+        plexToken:
+          type: string
+          description: X-Plex-Token for authenticated requests
+        baseUrl:
+          type: string
+          description: Base URL of the Plex server (e.g., http://localhost:32400)
+          default: http://localhost:32400
+      required:
+        - plexToken
+        - baseUrl
+    steps:
+      - stepId: checkIdentity
+        description: Verify the server identity endpoint responds
+        operationId: $sourceDescriptions.plex-api.getIdentity
+        parameters:
+          - name: X-Plex-Token
+            in: header
+            value: $inputs.plexToken
+        successCriteria:
+          - condition: $statusCode == 200
+          - condition: $response.body.machineIdentifier != null
+        outputs:
+          serverName: $response.body.MediaContainer.friendlyName
+          serverVersion: $response.body.MediaContainer.version
+          machineIdentifier: $response.body.MediaContainer.machineIdentifier
+
+      - stepId: checkFeatures
+        description: Retrieve server features to validate capability set
+        operationId: $sourceDescriptions.plex-api.getFeatures
+        parameters:
+          - name: X-Plex-Token
+            in: header
+            value: $inputs.plexToken
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          featuresCount: $response.body.MediaContainer.size
+
+      - stepId: checkServerInfo
+        description: Get detailed server information
+        operationId: $sourceDescriptions.plex-api.getServerInfo
+        parameters:
+          - name: X-Plex-Token
+            in: header
+            value: $inputs.plexToken
+        successCriteria:
+          - condition: $statusCode == 200
+          - condition: $response.body.MediaContainer.machineIdentifier == $steps.checkIdentity.outputs.machineIdentifier
+        outputs:
+          platform: $response.body.MediaContainer.platform
+          platformVersion: $response.body.MediaContainer.platformVersion
+
+    outputs:
+      healthy: true
+      serverName: $steps.checkIdentity.outputs.serverName
+      serverVersion: $steps.checkIdentity.outputs.serverVersion
+      machineIdentifier: $steps.checkIdentity.outputs.machineIdentifier
+      platform: $steps.checkServerInfo.outputs.platform
+      featuresCount: $steps.checkFeatures.outputs.featuresCount

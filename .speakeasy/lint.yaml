@@ -3,4 +3,5 @@ defaultRuleset: PathParamRuleset
 rulesets:
   PathParamRuleset:
     rulesets:
-      - speakeasy-generation # Use the speakeasy-generation ruleset as a base
+      - speakeasy-generation
+      - speakeasy-recommended
