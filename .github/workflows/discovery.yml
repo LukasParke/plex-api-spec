@@ -1,13 +1,25 @@
 name: Nightly Discovery Pipeline
 
+# Captures synthetic traffic against a throwaway PMS via Arbiter and diffs
+# it against plex-api-spec.yaml. Gaps (undocumented endpoints/params) fail
+# the run and open-or-update a single `spec-drift` tracking issue; a clean
+# run auto-closes it.
+
 on:
   schedule:
-    - cron: '0 6 * * *'
+    - cron: "0 6 * * *"
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "plex-api-spec.yaml"
+      - "docker-compose.yml"
+      - ".github/actions/plex-harness/**"
+      - ".github/workflows/discovery.yml"
 
 permissions:
   contents: read
-  actions: write
+  issues: write # open/update/close the spec-drift tracking issue
 
 concurrency:
   group: nightly-discovery
@@ -17,89 +29,125 @@ jobs:
   discover:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout plex-api-spec
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           persist-credentials: false
 
-      - name: Clone Arbiter
-        run: |
-          git clone https://github.com/LukasParke/arbiter.git ../arbiter
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - name: Start Plex harness
+        id: harness
+        uses: ./.github/actions/plex-harness
         with:
-          node-version: '24'
+          plex-claim-token: ${{ secrets.PLEX_CLAIM_TOKEN }}
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: latest
-
-      - name: Build Arbiter
+      - name: Start Arbiter proxy
         run: |
-          cd ../arbiter
-          pnpm install --frozen-lockfile
-          pnpm run build
-
-      - name: Set up Docker Compose
-        uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2320ee5c88db75466b73 # v3.10.0
-
-      - name: Start Plex Media Server
-        run: |
-          docker compose up -d pms
-          # Wait for PMS to be healthy
-          for i in {1..60}; do
-            if curl -sf http://localhost:32400/identity > /dev/null 2>&1; then
-              echo "PMS is ready"
-              break
-            fi
-            echo "Waiting for PMS... ($i/60)"
-            sleep 5
-          done
-        env:
-          PLEX_CLAIM_TOKEN: ${{ secrets.PLEX_CLAIM_TOKEN }}
-
-      - name: Start Arbiter Proxy
-        run: |
-          cd ../arbiter
+          cd "$GITHUB_WORKSPACE/../arbiter"
           node dist/src/cli.js start \
             --target http://localhost:32400 \
             --port 8080 \
             --docs-port 9000 \
             --db-path /tmp/arbiter.db \
             --verbose &
-          PROXY_PID=$!
-          echo "PROXY_PID=$PROXY_PID" >> $GITHUB_ENV
-          # Wait for proxy
+          echo "PROXY_PID=$!" >> "$GITHUB_ENV"
           for i in {1..30}; do
             if curl -sf http://localhost:8080/identity > /dev/null 2>&1; then
               echo "Proxy is ready"
-              break
+              exit 0
             fi
             echo "Waiting for proxy... ($i/30)"
             sleep 1
           done
+          echo "::error::Arbiter proxy did not become ready within 30s"
+          exit 1
 
-      - name: Generate Traffic
+      - name: Generate traffic
         run: |
-          cd ../arbiter
+          cd "$GITHUB_WORKSPACE/../arbiter"
           node dist/src/cli.js generate-traffic \
             --target http://localhost:8080 \
             --output /tmp/traffic.jsonl
 
-      - name: Stop Arbiter Proxy
-        run: |
-          kill $PROXY_PID || true
-          sleep 2
+      - name: Stop Arbiter proxy
+        if: always()
+        run: kill "$PROXY_PID" 2>/dev/null || true
 
-      - name: Run Diff
+      - name: Diff traffic against spec
+        id: diff
+        env:
+          # --exit-on-gap: non-zero exit when captured traffic hits
+          # endpoints/params missing from the spec.
+          DIFF_ARGS: --exit-on-gap
         run: |
-          cd ../arbiter
+          cd "$GITHUB_WORKSPACE/../arbiter"
+          set +e
           node dist/src/cli.js diff \
             --spec "$GITHUB_WORKSPACE/plex-api-spec.yaml" \
             --traffic /tmp/traffic.jsonl \
-            --output /tmp/diff_report.json
+            --output /tmp/diff_report.json \
+            $DIFF_ARGS
+          code=$?
+          set -e
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          echo "diff exited with $code"
+
+      - name: Summarize diff report
+        if: always()
+        run: |
+          {
+            echo "### Discovery diff report"
+            echo '```json'
+            head -c 20000 /tmp/diff_report.json 2>/dev/null || echo "(no report produced)"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Open or update spec-drift issue
+        if: steps.diff.outputs.exit_code != '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh label create spec-drift --force \
+            --description "Undocumented API surface detected by the nightly discovery pipeline" \
+            --color D93F0B
+          {
+            echo "## Spec drift detected ($(date -u +%Y-%m-%d))"
+            echo ""
+            echo "Run: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+            echo ""
+            echo "<details><summary>Diff report</summary>"
+            echo '```json'
+            head -c 60000 /tmp/diff_report.json 2>/dev/null || echo "(no report produced)"
+            echo '```'
+            echo "</details>"
+          } > /tmp/drift-issue.md
+          existing=$(gh issue list --label spec-drift --state open --json number --jq '.[0].number' || true)
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body-file /tmp/drift-issue.md
+            echo "Updated existing spec-drift issue #$existing"
+          else
+            gh issue create \
+              --title "Spec drift: undocumented API surface discovered" \
+              --label spec-drift \
+              --body-file /tmp/drift-issue.md
+            echo "Opened new spec-drift issue"
+          fi
+
+      - name: Close spec-drift issue when clean
+        if: steps.diff.outputs.exit_code == '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          existing=$(gh issue list --label spec-drift --state open --json number --jq '.[0].number' || true)
+          if [ -n "$existing" ]; then
+            gh issue close "$existing" \
+              --comment "Nightly discovery is clean as of $(date -u +%Y-%m-%d) (run $GITHUB_RUN_ID); closing."
+            echo "Closed spec-drift issue #$existing"
+          fi
+
+      - name: Fail on spec gaps
+        if: steps.diff.outputs.exit_code != '0'
+        run: exit 1
 
       - name: Stop Plex Media Server
         if: always()
@@ -111,6 +159,7 @@ jobs:
         with:
           name: diff-report
           path: /tmp/diff_report.json
+          retention-days: 30
 
       - name: Upload traffic capture
         if: always()
@@ -118,3 +167,4 @@ jobs:
         with:
           name: traffic-capture
           path: /tmp/traffic.jsonl
+          retention-days: 30
