@@ -1,0 +1,84 @@
+name: plex-harness
+description: >-
+  Clone and build Arbiter (pinned), start a claimed Plex Media Server via
+  docker compose, wait for health, and extract its API token. Fails fast if
+  the server or token never appears.
+inputs:
+  arbiter-ref:
+    description: Arbiter git commit SHA to build. Pinned; bump deliberately.
+    required: false
+    default: c7b43e649575cfb4ce07fb3505edbb28c2e6efda
+  plex-claim-token:
+    description: Plex claim token used to register the throwaway test server.
+    required: true
+outputs:
+  plex-token:
+    description: X-Plex-Token of the claimed test server.
+    value: ${{ steps.token.outputs.token }}
+
+runs:
+  using: composite
+  steps:
+    - name: Clone Arbiter (pinned)
+      shell: bash
+      working-directory: ${{ github.workspace }}
+      run: |
+        git clone https://github.com/LukasParke/arbiter.git ../arbiter
+        git -C ../arbiter checkout "${{ inputs.arbiter-ref }}"
+        git -C ../arbiter log --oneline -1
+
+    - name: Set up Node.js
+      uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+      with:
+        node-version: "24"
+
+    - name: Set up pnpm
+      uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+      with:
+        version: 10
+
+    - name: Build Arbiter
+      shell: bash
+      working-directory: ${{ github.workspace }}
+      run: |
+        cd ../arbiter
+        pnpm install --frozen-lockfile
+        pnpm run build
+
+    - name: Start Plex Media Server
+      shell: bash
+      working-directory: ${{ github.workspace }}
+      env:
+        PLEX_CLAIM_TOKEN: ${{ inputs.plex-claim-token }}
+      run: |
+        docker compose up -d pms
+        for i in {1..60}; do
+          if curl -sf http://localhost:32400/identity > /dev/null 2>&1; then
+            echo "PMS is ready"
+            exit 0
+          fi
+          echo "Waiting for PMS... ($i/60)"
+          sleep 5
+        done
+        echo "::error::PMS did not become healthy within 300s"
+        docker compose logs pms | tail -50
+        exit 1
+
+    - name: Extract Plex token
+      id: token
+      shell: bash
+      working-directory: ${{ github.workspace }}
+      run: |
+        for i in {1..30}; do
+          TOKEN=$(docker exec plex-api-test cat "/config/Library/Application Support/Plex Media Server/Preferences.xml" 2>/dev/null | grep -oP 'PlexOnlineToken="\K[^"]+' || true)
+          if [ -n "$TOKEN" ]; then
+            echo "::add-mask::$TOKEN"
+            echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
+            echo "Plex token acquired"
+            exit 0
+          fi
+          echo "Waiting for Plex token... ($i/30)"
+          sleep 5
+        done
+        echo "::error::PlexOnlineToken not found in PMS preferences within 150s"
+        exit 1
