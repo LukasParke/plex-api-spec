@@ -1,0 +1,131 @@
+name: Validate API Spec
+
+# Static validation gate. Runs on every PR (including forks — no secrets
+# required) and on pushes to main. This is the merge gate for spec and
+# workflow changes; runtime behavior is covered by contract-test.yml.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "plex-api-spec.yaml"
+      - "workflows/**"
+      - "plugins/**"
+      - "redocly.yaml"
+      - ".speakeasy/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/validate.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "plex-api-spec.yaml"
+      - "workflows/**"
+      - "plugins/**"
+      - "redocly.yaml"
+      - ".speakeasy/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/validate.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: validate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  format:
+    name: Format (prettier)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "24"
+          cache: npm
+      - run: npm ci
+      - run: npm run format
+
+  spec-lint:
+    name: OpenAPI lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "24"
+          cache: npm
+      - run: npm ci
+
+      - name: Redocly lint (annotations)
+        run: npx redocly lint plex-api-spec.yaml --format=github-actions
+
+      - name: Install Speakeasy (pinned)
+        env:
+          # Pinned to the CLI version that generated the spec. The install
+          # script verifies release checksums itself.
+          SPEAKEASY_VERSION: "1.790.2"
+        run: |
+          curl -fsSL "https://raw.githubusercontent.com/speakeasy-api/speakeasy/v${SPEAKEASY_VERSION}/install.sh" | VERSION="${SPEAKEASY_VERSION}" sh
+          speakeasy --version
+
+      - name: Speakeasy lint
+        run: speakeasy lint openapi -s plex-api-spec.yaml
+
+      - name: Install Vacuum (pinned + checksum verified)
+        env:
+          VACUUM_VERSION: "0.29.10"
+        run: |
+          curl -fsSLO "https://github.com/daveshanley/vacuum/releases/download/v${VACUUM_VERSION}/vacuum_${VACUUM_VERSION}_linux_x86_64.tar.gz"
+          curl -fsSLO "https://github.com/daveshanley/vacuum/releases/download/v${VACUUM_VERSION}/checksums.txt"
+          grep "vacuum_${VACUUM_VERSION}_linux_x86_64.tar.gz" checksums.txt | sha256sum -c -
+          tar -xzf "vacuum_${VACUUM_VERSION}_linux_x86_64.tar.gz"
+          sudo mv vacuum /usr/local/bin/
+          vacuum version
+
+      - name: Vacuum lint
+        # --min-score is the ratcheted baseline: a PR may hold or raise it,
+        # never lower it.
+        run: |
+          vacuum lint plex-api-spec.yaml \
+            --details \
+            --pipeline-output \
+            --no-banner \
+            --min-score 25
+
+      - name: Generate Vacuum report
+        if: always()
+        run: vacuum report plex-api-spec.yaml report-prefix --no-pretty
+
+      - name: Upload Vacuum report
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: vacuum-report
+          path: report-prefix*.json
+          retention-days: 30
+
+  arazzo-lint:
+    name: Arazzo workflow lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "24"
+          cache: npm
+      - run: npm ci
+
+      # Lints structure (recommended ruleset) and resolves step
+      # operationId/operationPath refs against plex-api-spec.yaml via
+      # plugins/arazzo-ref-rules.js.
+      - name: Redocly lint workflows (annotations)
+        run: npx redocly lint workflows/*.yaml --format=github-actions
