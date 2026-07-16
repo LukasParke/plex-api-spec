@@ -53,9 +53,9 @@ workflows:
 
       - stepId: listSectionItems
         description: List all items in the selected or first available section
-        operationId: $sourceDescriptions.plex-api.getLibraryItems
+        operationId: $sourceDescriptions.plex-api.listContent
         parameters:
-          - name: sectionKey
+          - name: sectionId
             in: path
             value: >
               ${

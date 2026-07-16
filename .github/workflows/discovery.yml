@@ -97,7 +97,7 @@ jobs:
         run: |
           cd ../arbiter
           node dist/src/cli.js diff \
-            --spec ./plex-api-spec/plex-api-spec.yaml \
+            --spec "$GITHUB_WORKSPACE/plex-api-spec.yaml" \
             --traffic /tmp/traffic.jsonl \
             --output /tmp/diff_report.json
 

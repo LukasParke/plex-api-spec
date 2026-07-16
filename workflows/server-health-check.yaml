@@ -77,7 +77,7 @@ workflows:
           platformVersion: $response.body.MediaContainer.platformVersion
 
     outputs:
-      healthy: true
+      healthy: "true"
       serverName: $steps.checkIdentity.outputs.serverName
       serverVersion: $steps.checkIdentity.outputs.serverVersion
       machineIdentifier: $steps.checkIdentity.outputs.machineIdentifier
