@@ -1,8 +1,12 @@
-version: "3.8"
+# Local + CI test harness: a throwaway Plex Media Server.
+# The Arbiter proxy is run directly from its own repo (see the plex-harness
+# composite action); it is not a compose service because its build context
+# lives outside this repository.
 
 services:
   pms:
-    image: plexinc/pms-docker:latest
+    # Pinned PMS version; bump deliberately (dependabot does not track this).
+    image: plexinc/pms-docker:1.43.3.10828-00f62d37d
     container_name: plex-api-test
     restart: "no"
     ports:
@@ -23,34 +27,3 @@ services:
       timeout: 5s
       retries: 30
       start_period: 60s
-
-  proxy:
-    build:
-      context: ../arbiter
-      dockerfile: Dockerfile
-    container_name: plex-api-proxy
-    restart: "no"
-    ports:
-      - "8080:8080"
-      - "9000:9000"
-    command:
-      - "node"
-      - "dist/src/cli.js"
-      - "--target"
-      - "http://pms:32400"
-      - "--port"
-      - "8080"
-      - "--docs-port"
-      - "9000"
-      - "--db-path"
-      - "/data/arbiter.db"
-      - "--validate"
-      - "--spec"
-      - "/spec/plex-api-spec.yaml"
-      - "--verbose"
-    volumes:
-      - ./test-data/capture:/data
-      - ./plex-api-spec.yaml:/spec/plex-api-spec.yaml:ro
-    depends_on:
-      pms:
-        condition: service_healthy
