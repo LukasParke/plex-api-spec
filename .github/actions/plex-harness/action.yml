@@ -8,8 +8,11 @@ inputs:
     description: Arbiter git commit SHA to build. Pinned; bump deliberately.
     required: false
     default: c7b43e649575cfb4ce07fb3505edbb28c2e6efda
-  plex-claim-token:
-    description: Plex claim token used to register the throwaway test server.
+  plex-account-token:
+    description: >-
+      Long-lived Plex account token (X-Plex-Token). A short-lived claim
+      token is minted from it at runtime — claim tokens expire within
+      minutes and therefore cannot be stored as a static secret.
     required: true
 outputs:
   plex-token:
@@ -45,11 +48,28 @@ runs:
         pnpm install --frozen-lockfile
         pnpm run build
 
+    - name: Mint claim token
+      id: claim
+      shell: bash
+      env:
+        PLEX_ACCOUNT_TOKEN: ${{ inputs.plex-account-token }}
+      run: |
+        if [ -z "$PLEX_ACCOUNT_TOKEN" ]; then
+          echo "::error::PLEX_ACCOUNT_TOKEN secret is not set. Runtime tiers need it to mint a per-run claim token (see CONTRIBUTING.md)."
+          exit 1
+        fi
+        CLAIM=$(curl -sf "https://plex.tv/api/claim/token.json?token=$PLEX_ACCOUNT_TOKEN" | jq -r .claimToken)
+        if [ -z "$CLAIM" ] || [ "$CLAIM" = "null" ]; then
+          echo "::error::Failed to mint a claim token from plex.tv — is PLEX_ACCOUNT_TOKEN valid?"
+          exit 1
+        fi
+        echo "::add-mask::$CLAIM"
+        echo "PLEX_CLAIM_TOKEN=$CLAIM" >> "$GITHUB_ENV"
+        echo "Claim token minted"
+
     - name: Start Plex Media Server
       shell: bash
       working-directory: ${{ github.workspace }}
-      env:
-        PLEX_CLAIM_TOKEN: ${{ inputs.plex-claim-token }}
       run: |
         docker compose up -d pms
         for i in {1..60}; do
@@ -80,5 +100,6 @@ runs:
           echo "Waiting for Plex token... ($i/30)"
           sleep 5
         done
-        echo "::error::PlexOnlineToken not found in PMS preferences within 150s"
+        echo "::error::PlexOnlineToken not found in PMS preferences within 150s — the server is probably unclaimed (claim token minting or PLEX_ACCOUNT_TOKEN issue)."
+        docker compose logs pms | tail -30
         exit 1

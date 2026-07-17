@@ -26,7 +26,26 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  preflight:
+    name: Preflight (secret check)
+    runs-on: ubuntu-latest
+    outputs:
+      has-token: ${{ steps.check.outputs.has-token }}
+    steps:
+      - id: check
+        env:
+          PLEX_ACCOUNT_TOKEN: ${{ secrets.PLEX_ACCOUNT_TOKEN }}
+        run: |
+          if [ -n "$PLEX_ACCOUNT_TOKEN" ]; then
+            echo "has-token=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has-token=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::PLEX_ACCOUNT_TOKEN secret is not set — discovery run will be skipped (see CONTRIBUTING.md)."
+          fi
+
   discover:
+    needs: preflight
+    if: needs.preflight.outputs.has-token == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -37,7 +56,7 @@ jobs:
         id: harness
         uses: ./.github/actions/plex-harness
         with:
-          plex-claim-token: ${{ secrets.PLEX_CLAIM_TOKEN }}
+          plex-account-token: ${{ secrets.PLEX_ACCOUNT_TOKEN }}
 
       - name: Start Arbiter proxy
         run: |
