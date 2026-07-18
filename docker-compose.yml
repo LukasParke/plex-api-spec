@@ -1,0 +1,29 @@
+# Local + CI test harness: a throwaway Plex Media Server.
+# The Arbiter proxy is run directly from its own repo (see the plex-harness
+# composite action); it is not a compose service because its build context
+# lives outside this repository.
+
+services:
+  pms:
+    # Pinned PMS version; bump deliberately (dependabot does not track this).
+    image: plexinc/pms-docker:1.43.3.10828-00f62d37d
+    container_name: plex-api-test
+    restart: "no"
+    ports:
+      - "32400:32400/tcp"
+      - "32400:32400/udp"
+    environment:
+      - PLEX_CLAIM=${PLEX_CLAIM_TOKEN:-claim-xxxxxxxxxxxxxxxxxxxx}
+      - PUID=1000
+      - PGID=1000
+      - TZ=UTC
+    volumes:
+      - ./test-data/config:/config
+      - ./test-data/transcode:/transcode
+      - ./test-data/media:/data/media:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:32400/identity"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s

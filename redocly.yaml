@@ -1,0 +1,17 @@
+# Redocly CLI configuration.
+# Lints the OpenAPI spec and the Arazzo workflows. The local plugin adds
+# reference resolution for Arazzo steps, which the built-in rules do not
+# cover: operationId / operationPath are checked against the OpenAPI
+# documents named in each workflow's sourceDescriptions.
+extends:
+  - recommended
+plugins:
+  - ./plugins/arazzo-ref-rules.js
+rules:
+  plex/operation-ref-resolves: error
+  # Ratchet: pre-existing violations in the generated spec (duplicate
+  # X-Plex-* params in transcode/timeline ops; two trailing-slash paths).
+  # Warn now, promote to error once the generator is fixed. Do not add new
+  # violations.
+  operation-parameters-unique: warn
+  no-path-trailing-slash: warn

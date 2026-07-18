@@ -1,0 +1,17 @@
+{
+  "name": "plex-api-spec",
+  "private": true,
+  "description": "OpenAPI specification and Arazzo workflows for the Plex Media Server API",
+  "scripts": {
+    "format": "prettier --check plex-api-spec.yaml \"workflows/*.yaml\" \"plugins/*.js\"",
+    "format:write": "prettier --write plex-api-spec.yaml \"workflows/*.yaml\" \"plugins/*.js\"",
+    "lint": "redocly lint plex-api-spec.yaml workflows/*.yaml",
+    "lint:speakeasy": "speakeasy lint openapi -s plex-api-spec.yaml",
+    "validate": "npm run format && npm run lint"
+  },
+  "devDependencies": {
+    "@redocly/cli": "2.39.0",
+    "prettier": "^3.8.3",
+    "prettier-plugin-openapi": "^1.0.15"
+  }
+}

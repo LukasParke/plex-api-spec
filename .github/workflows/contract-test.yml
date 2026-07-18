@@ -1,0 +1,157 @@
+name: Contract Tests
+
+# Runtime behavior gate: boots a seeded Plex Media Server behind the
+# Arbiter proxy (spec validation enabled) and executes every Arazzo
+# workflow against it with redocly respect.
+#
+# Requires the PLEX_CLAIM_TOKEN secret, so fork PRs are skipped — the
+# static gate (validate.yml) still covers them.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "plex-api-spec.yaml"
+      - "workflows/**"
+      - "plugins/**"
+      - "redocly.yaml"
+      - "docker-compose.yml"
+      - "scripts/**"
+      - ".github/actions/plex-harness/**"
+      - ".github/workflows/contract-test.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "plex-api-spec.yaml"
+      - "workflows/**"
+      - "plugins/**"
+      - "redocly.yaml"
+      - "docker-compose.yml"
+      - "scripts/**"
+      - ".github/actions/plex-harness/**"
+      - ".github/workflows/contract-test.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: contract-test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  preflight:
+    name: Preflight (secret check)
+    runs-on: ubuntu-latest
+    outputs:
+      has-token: ${{ steps.check.outputs.has-token }}
+    steps:
+      - id: check
+        env:
+          PLEX_ACCOUNT_TOKEN: ${{ secrets.PLEX_ACCOUNT_TOKEN }}
+        run: |
+          if [ -n "$PLEX_ACCOUNT_TOKEN" ]; then
+            echo "has-token=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has-token=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::PLEX_ACCOUNT_TOKEN secret is not set — runtime contract tests will be skipped (see CONTRIBUTING.md)."
+          fi
+
+  respect:
+    name: Arazzo contract tests
+    needs: preflight
+    if: needs.preflight.outputs.has-token == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Start Plex harness
+        id: harness
+        uses: ./.github/actions/plex-harness
+        with:
+          plex-account-token: ${{ secrets.PLEX_ACCOUNT_TOKEN }}
+
+      - name: Install workflow tooling
+        run: npm ci
+
+      - name: Seed library
+        env:
+          PLEX_TOKEN: ${{ steps.harness.outputs.plex-token }}
+        run: scripts/seed-library.sh
+
+      - name: Start Arbiter proxy with spec validation
+        run: |
+          cd "$GITHUB_WORKSPACE/../arbiter"
+          node dist/src/cli.js start \
+            --target http://localhost:32400 \
+            --port 8080 \
+            --docs-port 9000 \
+            --db-path /tmp/arbiter.db \
+            --validate \
+            --spec "$GITHUB_WORKSPACE/plex-api-spec.yaml" \
+            --verbose > /tmp/arbiter.log 2>&1 &
+          echo "PROXY_PID=$!" >> "$GITHUB_ENV"
+          for i in {1..30}; do
+            if curl -sf http://localhost:8080/identity > /dev/null 2>&1; then
+              echo "Arbiter proxy is ready (validation enabled)"
+              exit 0
+            fi
+            echo "Waiting for arbiter proxy... ($i/30)"
+            sleep 1
+          done
+          echo "::error::Arbiter proxy did not become ready within 30s"
+          cat /tmp/arbiter.log
+          exit 1
+
+      - name: Run Arazzo workflows
+        run: |
+          FAILED=0
+          echo "| Workflow | Result |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|---|---|" >> "$GITHUB_STEP_SUMMARY"
+          for wf in workflows/*.yaml; do
+            name=$(basename "$wf" .yaml)
+            if npx redocly respect "$wf" \
+                --input "plexToken=${{ steps.harness.outputs.plex-token }}" \
+                --input baseUrl=http://localhost:8080 \
+                --json-output "/tmp/respect-$name.json"; then
+              echo "| $name | ✅ |" >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "| $name | ❌ |" >> "$GITHUB_STEP_SUMMARY"
+              FAILED=1
+            fi
+          done
+          exit $FAILED
+
+      - name: Check Arbiter spec validation log
+        if: always()
+        run: |
+          {
+            echo ""
+            echo "### Arbiter spec-validation findings"
+            echo '```'
+            grep -E "\[VALIDATE\]|Proxy error|Diff Report|Missing endpoints|Query param gaps" /tmp/arbiter.log | head -100 || echo "(none)"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          if grep -qE "Missing endpoints|Query param gaps" /tmp/arbiter.log; then
+            echo "::error::Arbiter detected requests that do not match the spec (see summary)"
+            exit 1
+          fi
+
+      - name: Stop Arbiter proxy
+        if: always()
+        run: kill "$PROXY_PID" 2>/dev/null || true
+
+      - name: Stop Plex Media Server
+        if: always()
+        run: docker compose down
+
+      - name: Upload Arbiter log and test results
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: contract-test-results
+          path: |
+            /tmp/arbiter.log
+            /tmp/respect-*.json
+          retention-days: 14
