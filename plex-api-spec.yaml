@@ -507,7 +507,7 @@ paths:
           in: query
           schema:
             type: string
-          example: 123
+          example: '123'
         - name: time
           description: The current time offset of playback in ms.
           in: query
@@ -568,17 +568,7 @@ paths:
           schema:
             type: integer
           example: 1024
-        - name: X-Plex-Client-Identifier
-          description: Unique per client.
-          in: header
-          required: true
-          schema:
-            type: string
-        - name: X-Plex-Session-Identifier
-          description: Unique per client playback session.  Used if a client can playback multiple items at a time (such as a browser with multiple tabs)
-          in: header
-          schema:
-            type: string
+        - $ref: '#/components/parameters/X-Plex-Session-Identifier'
       responses:
         '200':
           description: OK
@@ -1374,7 +1364,7 @@ paths:
           in: query
           schema:
             type: string
-            format: url
+            format: uri
           example: file:///storage%2Femulated%2F0%2FArcher-S01E01.mkv
         - name: virtualFilePath
           description: A virtual path to use when the url is opaque.
@@ -1931,7 +1921,8 @@ paths:
             type: array
             items:
               type: string
-          example: device[]=device://tv.plex.grabbers.hdhomerun/1053C0CA
+          example:
+            - device://tv.plex.grabbers.hdhomerun/1053C0CA
         - name: language
           description: The language.
           in: query
@@ -3751,7 +3742,9 @@ paths:
             type: array
             items:
               type: string
-          example: viewedAt:desc,accountID
+          example:
+            - 'viewedAt:desc'
+            - accountID
       responses:
         '200':
           description: OK
@@ -4156,7 +4149,7 @@ paths:
           in: query
           schema:
             type: string
-            pattern: ^\d[x:]\d$
+            pattern: ^\d+[x:]\d+$
           example: 1080x1080
         - name: protocol
           description: |
@@ -4196,7 +4189,7 @@ paths:
               - embedded
               - segmented
               - unknown
-          example: Burn
+          example: burn
         - name: videoBitrate
           description: Target video bitrate (in kbps).
           in: query
@@ -4217,55 +4210,11 @@ paths:
           in: query
           schema:
             type: string
-            pattern: ^\d[x:]\d$
+            pattern: ^\d+[x:]\d+$
           example: 1080x1080
-        - name: X-Plex-Client-Identifier
-          description: Unique per client.
-          in: header
-          required: true
-          schema:
-            type: string
-        - name: X-Plex-Client-Profile-Extra
-          description: See [Profile Augmentations](#section/API-Info/Profile-Augmentations) .
-          in: header
-          schema:
-            type: string
-          example: add-limitation(scope=videoCodec&scopeName=*&type=upperBound&name=video.frameRate&value=60&replace=true)+append-transcode-target-codec(type=videoProfile&context=streaming&videoCodec=h264%2Chevc&audioCodec=aac&protocol=dash)
-        - name: X-Plex-Client-Profile-Name
-          description: Which built in Client Profile to use in the decision. Generally should only be used to specify the Generic profile.
-          in: header
-          schema:
-            type: string
-          example: generic
-        - name: X-Plex-Device
-          description: Device the client is running on
-          in: header
-          schema:
-            type: string
-          example: Windows
-        - name: X-Plex-Model
-          description: Model of the device the client is running on
-          in: header
-          schema:
-            type: string
-          example: standalone
-        - name: X-Plex-Platform
-          description: Client Platform
-          in: header
-          schema:
-            type: string
-          example: Chrome
-        - name: X-Plex-Platform-Version
-          description: Client Platform Version
-          in: header
-          schema:
-            type: string
-          example: 135
-        - name: X-Plex-Session-Identifier
-          description: Unique per client playback session.  Used if a client can playback multiple items at a time (such as a browser with multiple tabs)
-          in: header
-          schema:
-            type: string
+        - $ref: '#/components/parameters/X-Plex-Client-Profile-Extra'
+        - $ref: '#/components/parameters/X-Plex-Client-Profile-Name'
+        - $ref: '#/components/parameters/X-Plex-Session-Identifier'
       responses:
         '200':
           description: OK
@@ -4447,7 +4396,7 @@ paths:
           in: query
           schema:
             type: string
-            pattern: ^\d[x:]\d$
+            pattern: ^\d+[x:]\d+$
           example: 1080x1080
         - name: protocol
           description: |
@@ -4487,7 +4436,7 @@ paths:
               - embedded
               - segmented
               - unknown
-          example: Burn
+          example: burn
         - name: videoBitrate
           description: Target video bitrate (in kbps).
           in: query
@@ -4508,55 +4457,11 @@ paths:
           in: query
           schema:
             type: string
-            pattern: ^\d[x:]\d$
+            pattern: ^\d+[x:]\d+$
           example: 1080x1080
-        - name: X-Plex-Client-Identifier
-          description: Unique per client.
-          in: header
-          required: true
-          schema:
-            type: string
-        - name: X-Plex-Client-Profile-Extra
-          description: See [Profile Augmentations](#section/API-Info/Profile-Augmentations) .
-          in: header
-          schema:
-            type: string
-          example: add-limitation(scope=videoCodec&scopeName=*&type=upperBound&name=video.frameRate&value=60&replace=true)+append-transcode-target-codec(type=videoProfile&context=streaming&videoCodec=h264%2Chevc&audioCodec=aac&protocol=dash)
-        - name: X-Plex-Client-Profile-Name
-          description: Which built in Client Profile to use in the decision. Generally should only be used to specify the Generic profile.
-          in: header
-          schema:
-            type: string
-          example: generic
-        - name: X-Plex-Device
-          description: Device the client is running on
-          in: header
-          schema:
-            type: string
-          example: Windows
-        - name: X-Plex-Model
-          description: Model of the device the client is running on
-          in: header
-          schema:
-            type: string
-          example: standalone
-        - name: X-Plex-Platform
-          description: Client Platform
-          in: header
-          schema:
-            type: string
-          example: Chrome
-        - name: X-Plex-Platform-Version
-          description: Client Platform Version
-          in: header
-          schema:
-            type: string
-          example: 135
-        - name: X-Plex-Session-Identifier
-          description: Unique per client playback session.  Used if a client can playback multiple items at a time (such as a browser with multiple tabs)
-          in: header
-          schema:
-            type: string
+        - $ref: '#/components/parameters/X-Plex-Client-Profile-Extra'
+        - $ref: '#/components/parameters/X-Plex-Client-Profile-Name'
+        - $ref: '#/components/parameters/X-Plex-Session-Identifier'
       responses:
         '200':
           description: Transcoded subtitle file
@@ -4694,7 +4599,7 @@ paths:
                   default: false
                 verificationCode:
                   type: string
-                  example: 123456
+                  example: '123456'
         description: Login credentials
       responses:
         '201':
@@ -9776,7 +9681,10 @@ paths:
             type: array
             items:
               type: string
-          example: 46.1,44.1,45.1
+          example:
+            - '46.1'
+            - '44.1'
+            - '45.1'
       responses:
         '200':
           description: OK
@@ -10989,7 +10897,7 @@ paths:
           in: query
           schema:
             type: string
-            pattern: ^\d[x:]\d$
+            pattern: ^\d+[x:]\d+$
           example: 1080x1080
         - name: protocol
           description: |
@@ -11029,7 +10937,7 @@ paths:
               - embedded
               - segmented
               - unknown
-          example: Burn
+          example: burn
         - name: videoBitrate
           description: Target video bitrate (in kbps).
           in: query
@@ -11050,55 +10958,11 @@ paths:
           in: query
           schema:
             type: string
-            pattern: ^\d[x:]\d$
+            pattern: ^\d+[x:]\d+$
           example: 1080x1080
-        - name: X-Plex-Client-Identifier
-          description: Unique per client.
-          in: header
-          required: true
-          schema:
-            type: string
-        - name: X-Plex-Client-Profile-Extra
-          description: See [Profile Augmentations](#section/API-Info/Profile-Augmentations) .
-          in: header
-          schema:
-            type: string
-          example: add-limitation(scope=videoCodec&scopeName=*&type=upperBound&name=video.frameRate&value=60&replace=true)+append-transcode-target-codec(type=videoProfile&context=streaming&videoCodec=h264%2Chevc&audioCodec=aac&protocol=dash)
-        - name: X-Plex-Client-Profile-Name
-          description: Which built in Client Profile to use in the decision. Generally should only be used to specify the Generic profile.
-          in: header
-          schema:
-            type: string
-          example: generic
-        - name: X-Plex-Device
-          description: Device the client is running on
-          in: header
-          schema:
-            type: string
-          example: Windows
-        - name: X-Plex-Model
-          description: Model of the device the client is running on
-          in: header
-          schema:
-            type: string
-          example: standalone
-        - name: X-Plex-Platform
-          description: Client Platform
-          in: header
-          schema:
-            type: string
-          example: Chrome
-        - name: X-Plex-Platform-Version
-          description: Client Platform Version
-          in: header
-          schema:
-            type: string
-          example: 135
-        - name: X-Plex-Session-Identifier
-          description: Unique per client playback session.  Used if a client can playback multiple items at a time (such as a browser with multiple tabs)
-          in: header
-          schema:
-            type: string
+        - $ref: '#/components/parameters/X-Plex-Client-Profile-Extra'
+        - $ref: '#/components/parameters/X-Plex-Client-Profile-Name'
+        - $ref: '#/components/parameters/X-Plex-Session-Identifier'
       responses:
         '200':
           description: MPD file (see ISO/IEC 23009-1:2022), m3u8 file (see RFC 8216), or binary http stream
@@ -12935,7 +12799,6 @@ paths:
               uri: library://82503060-0d68-4603-b594-8b071d54819e/item/%2Flibrary%2Fmetadata%2F146
             locationID: -1
             Policy:
-              value: ''
               scope: all
               unwatched: 0
             target: ''
@@ -13743,7 +13606,7 @@ components:
       in: query
       schema:
         type: string
-        pattern: ^\d[x:]\d$
+        pattern: ^\d+[x:]\d+$
       example: 1080x1080
     protocol:
       name: protocol
@@ -13785,7 +13648,7 @@ components:
           - embedded
           - segmented
           - unknown
-      example: Burn
+      example: burn
     subtitleSize:
       name: subtitleSize
       description: Percentage of original subtitle size to use when burning subtitles (100 is equivalent to original size, 50 is half, ect)
@@ -13861,7 +13724,7 @@ components:
       in: query
       schema:
         type: string
-        pattern: ^\d[x:]\d$
+        pattern: ^\d+[x:]\d+$
       example: 1080x1080
     X-Plex-Client-Identifier:
       name: X-Plex-Client-Identifier
@@ -14037,10 +13900,6 @@ components:
         text/html: {}
     '404':
       description: Not Found
-      content:
-        text/html: {}
-    '500':
-      description: Internal Server Error
       content:
         text/html: {}
     dvrRequestHandler_slash-get-responses-200:
@@ -15350,16 +15209,10 @@ components:
                 description: |
                   The unique identifier for the Guid. Can be prefixed with imdb://, tmdb://, tvdb://
                 pattern: "^(imdb|tmdb|tvdb)://.+$"
-                example:
-                  imdbExample:
-                    summary: IMDB example
-                    value: imdb://tt13015952
-                  tmdbExample:
-                    summary: TMDB example
-                    value: tmdb://2434012
-                  tvdbExample:
-                    summary: TVDB example
-                    value: tvdb://7945991
+                examples:
+                  - imdb://tt13015952
+                  - tmdb://2434012
+                  - tvdb://7945991
         hero:
           description: When present, the URL for a hero image for the item.
           type: string
@@ -16259,8 +16112,6 @@ components:
           example: http://image.tmdb.org/t/p/original/lcJ8qM51ClAR2UzXU1mkZGfnn3o.jpg
     Thumb:
       type: string
-    Title:
-      type: string
     TranscodeSession:
       description: The transcode session if item is currently being transcoded
       type: object
@@ -16295,8 +16146,6 @@ components:
           type: boolean
         transcodeHwRequested:
           type: boolean
-    Type:
-      type: string
     UserPlexAccount:
       title: UserPlexAccount
       type: object
@@ -16371,7 +16220,8 @@ components:
           description: List of devices your allowed to use with this account
           items:
             type: string
-          example: '[]'
+          example:
+            - all
         guest:
           type: boolean
           description: If the account is a Plex Home guest user
