@@ -8185,11 +8185,6 @@ paths:
           required: true
           schema:
             type: integer
-        - name: type
-          description: Item type
-          in: query
-          schema:
-            type: integer
         - name: field.query
           description: The "field" stands in for any field, the value is a partial string for matching
           in: query
@@ -8347,11 +8342,6 @@ paths:
           description: Section identifier
           in: path
           required: true
-          schema:
-            type: integer
-        - name: type
-          description: Item type
-          in: query
           schema:
             type: integer
         - $ref: '#/components/parameters/mediaQuery'
@@ -8524,16 +8514,6 @@ paths:
           description: Section identifier
           in: path
           required: true
-          schema:
-            type: integer
-        - name: type
-          description: The metadata type to filter on
-          in: query
-          schema:
-            type: integer
-        - name: sort
-          description: The metadata type to filter on
-          in: query
           schema:
             type: integer
         - $ref: '#/components/parameters/mediaQuery'
