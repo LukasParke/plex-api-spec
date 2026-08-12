@@ -1,0 +1,43 @@
+name: PR Validation
+permissions:
+  contents: read
+  pull-requests: write # lets oasdiff post its review link as a PR comment
+"on":
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+  workflow_dispatch: {}
+jobs:
+  lint:
+    name: Lint OpenAPI spec
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      # Configuration lives in redocly.yaml; pre-existing violations are
+      # baselined in .redocly.lint-ignore.yaml. Any new violation fails.
+      - name: Redocly lint
+        run: npx --yes @redocly/cli@2.46.1 lint plex-api-spec.yaml --format=github-actions --max-problems 1000
+  breaking-changes:
+    name: Breaking-change gate
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Fetch base branch
+        run: git fetch --depth=1 origin ${{ github.base_ref }}
+      # Fails the build on changes that would break existing API clients (and
+      # the generated SDKs). Label the PR 'breaking-change' to acknowledge an
+      # intentional break: the report is still produced, but the job passes.
+      - name: Detect breaking changes (oasdiff)
+        uses: oasdiff/oasdiff-action/breaking@v0
+        with:
+          base: "origin/${{ github.base_ref }}:plex-api-spec.yaml"
+          revision: "HEAD:plex-api-spec.yaml"
+          fail-on: ${{ !contains(github.event.pull_request.labels.*.name, 'breaking-change') && 'WARN' || '' }}
+          github-token: ${{ github.token }}

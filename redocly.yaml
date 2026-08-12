@@ -1,0 +1,21 @@
+# Redocly lint configuration, run in CI on every pull request:
+#   npx @redocly/cli lint plex-api-spec.yaml
+#
+# Rules below are elevated from the `recommended` defaults so violations fail
+# the build. Pre-existing violations are baselined in .redocly.lint-ignore.yaml;
+# any *new* violation fails. When you fix a baselined violation, regenerate the
+# ignore file so the baseline only ever shrinks:
+#   npx @redocly/cli lint plex-api-spec.yaml --generate-ignore-file
+extends:
+  - recommended
+rules:
+  # Every operation must document at least one 4xx response with a schema.
+  operation-4xx-response: error
+  # Examples must validate against their schemas.
+  no-invalid-parameter-examples: error
+  no-invalid-schema-examples: error
+  no-invalid-media-type-examples: error
+  # Dead components are not allowed to accumulate.
+  no-unused-components: error
+  # Paths must resolve unambiguously.
+  no-ambiguous-paths: error
