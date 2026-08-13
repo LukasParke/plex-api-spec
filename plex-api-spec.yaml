@@ -50546,6 +50546,12 @@ paths:
           schema:
             type: integer
             minimum: 0
+        - name: X-Plex-Client-Profile-Extra
+          description: Profile augmentations supplied as a query parameter by some music transcode clients.
+          in: query
+          schema:
+            type: string
+          x-speakeasy-name-override: clientProfileExtraQuery
         - name: offset
           description: Offset from the start of the media (in seconds).
           in: query
