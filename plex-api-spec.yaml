@@ -48744,8 +48744,13 @@ paths:
 
         To create an optimized media version, first retrieve the background-processing playlist
         with `GET /playlists?type=42`, then add an item to that playlist with `Item[type]=42`,
-        an `Item[Location][uri]` that identifies the media, and either `Item[targetTagID]` for a
-        built-in optimization profile or custom `Item[MediaSettings][...]` values.
+        an `Item[Location][uri]` that identifies the media, and one of these target configurations:
+
+        - A built-in profile specified by `Item[targetTagID]`.
+        - A custom target specified by `Item[target]`, `Item[Device][profile]`, and
+          `Item[MediaSettings][videoQuality]` together. The remaining media settings describe
+          the custom target. Original quality uses empty strings for video quality, resolution,
+          and maximum bitrate.
       parameters:
         - $ref: "#/components/parameters/accepts"
         - $ref: "#/components/parameters/X-Plex-Client-Identifier"
@@ -48789,13 +48794,13 @@ paths:
             type: string
           x-speakeasy-name-override: itemTitle
         - name: Item[target]
-          description: Custom optimization target name.
+          description: Custom optimization target name. Required with Item[Device][profile] and Item[MediaSettings][videoQuality] when Item[targetTagID] is not used.
           in: query
           schema:
             type: string
           x-speakeasy-name-override: itemTarget
         - name: Item[targetTagID]
-          description: ID of a built-in media-processing target such as Optimized for Mobile.
+          description: ID of a built-in media-processing target such as Optimized for Mobile. Use this instead of the custom-target parameters.
           in: query
           schema:
             type: integer
@@ -48814,7 +48819,7 @@ paths:
             type: string
           x-speakeasy-name-override: itemLocationUri
         - name: Item[Policy][scope]
-          description: Optimization policy scope, such as all or count.
+          description: Optimization policy scope. The only valid values are all and count.
           in: query
           schema:
             type: string
@@ -48836,16 +48841,20 @@ paths:
             $ref: "#/components/schemas/BoolInt"
           x-speakeasy-name-override: itemPolicyUnwatched
         - name: Item[Device][profile]
-          description: Client device profile used for a custom optimization target.
+          description: Client device profile used for a custom optimization target. Required with Item[target] and Item[MediaSettings][videoQuality].
           in: query
           schema:
             type: string
           x-speakeasy-name-override: itemDeviceProfile
         - name: Item[MediaSettings][videoQuality]
-          description: Video quality index for a custom optimization target.
+          description: Video quality index for a custom optimization target, or an empty string for original quality. Required with Item[target] and Item[Device][profile].
           in: query
           schema:
-            type: integer
+            oneOf:
+              - type: integer
+              - type: string
+                enum:
+                  - ''
           x-speakeasy-name-override: itemVideoQuality
         - name: Item[MediaSettings][videoResolution]
           description: Maximum video resolution for a custom optimization target.
@@ -48854,11 +48863,15 @@ paths:
             type: string
           x-speakeasy-name-override: itemVideoResolution
         - name: Item[MediaSettings][maxVideoBitrate]
-          description: Maximum video bitrate in kbps for a custom optimization target.
+          description: Maximum video bitrate in kbps for a custom optimization target, or an empty string for original quality.
           in: query
           schema:
-            type: integer
-            minimum: 0
+            oneOf:
+              - type: integer
+                minimum: 0
+              - type: string
+                enum:
+                  - ''
           x-speakeasy-name-override: itemMaxVideoBitrate
       responses:
         '200':
