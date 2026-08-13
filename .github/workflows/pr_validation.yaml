@@ -21,6 +21,11 @@ jobs:
       # baselined in .redocly.lint-ignore.yaml. Any new violation fails.
       - name: Redocly lint
         run: npx --yes @redocly/cli@2.46.1 lint plex-api-spec.yaml --format=github-actions --max-problems 1000
+      # Spectral covers rules Redocly's recommended set does not (e.g.
+      # operation-tag-defined, info-description). Configuration lives in
+      # .spectral.yaml. Warnings fail the build.
+      - name: Spectral lint
+        run: npx --yes @stoplight/spectral-cli@6.16.3 lint plex-api-spec.yaml --fail-severity=warn --format=github-actions
   breaking-changes:
     name: Breaking-change gate
     if: github.event_name == 'pull_request'
