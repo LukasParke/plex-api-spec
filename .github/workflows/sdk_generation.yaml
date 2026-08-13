@@ -18,7 +18,7 @@ permissions:
       - main
     paths:
       - .github/workflows/sdk_generation.yaml
-      - ./plex-api-spec.yaml
+      - plex-api-spec.yaml
 jobs:
   generate:
     uses: speakeasy-api/sdk-generation-action/.github/workflows/workflow-executor.yaml@v15
