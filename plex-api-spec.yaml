@@ -48735,10 +48735,17 @@ paths:
                 type: string
     put:
       operationId: addPlaylistItems
-      summary: Adding to  a Playlist
+      summary: Add Items or an Optimization Job to a Playlist
       tags:
         - Library Playlists
-      description: Adds a generator to a playlist, same parameters as the POST above. With a dumb playlist, this adds the specified items to the playlist. With a smart playlist, passing a new `uri` parameter replaces the rules for the playlist. Returns the playlist.
+      description: |-
+        Adds items or a generator to a playlist. With a dumb playlist, this adds the specified items.
+        With a smart playlist, passing a new `uri` replaces the rules.
+
+        To create an optimized media version, first retrieve the background-processing playlist
+        with `GET /playlists?type=42`, then add an item to that playlist with `Item[type]=42`,
+        an `Item[Location][uri]` that identifies the media, and either `Item[targetTagID]` for a
+        built-in optimization profile or custom `Item[MediaSettings][...]` values.
       parameters:
         - $ref: "#/components/parameters/accepts"
         - $ref: "#/components/parameters/X-Plex-Client-Identifier"
@@ -48767,6 +48774,89 @@ paths:
           in: query
           schema:
             type: integer
+        - name: Item[type]
+          description: Item type. Use 42 to create an optimized-version job.
+          in: query
+          schema:
+            type: integer
+            enum:
+              - 42
+          x-speakeasy-name-override: itemType
+        - name: Item[title]
+          description: Display title for the optimization job.
+          in: query
+          schema:
+            type: string
+          x-speakeasy-name-override: itemTitle
+        - name: Item[target]
+          description: Custom optimization target name.
+          in: query
+          schema:
+            type: string
+          x-speakeasy-name-override: itemTarget
+        - name: Item[targetTagID]
+          description: ID of a built-in media-processing target such as Optimized for Mobile.
+          in: query
+          schema:
+            type: integer
+          x-speakeasy-name-override: itemTargetTagId
+        - name: Item[locationID]
+          description: Destination library location ID. Use -1 to store the optimized version with the original media.
+          in: query
+          schema:
+            type: integer
+            minimum: -1
+          x-speakeasy-name-override: itemLocationId
+        - name: Item[Location][uri]
+          description: Plex library URI identifying the media to optimize.
+          in: query
+          schema:
+            type: string
+          x-speakeasy-name-override: itemLocationUri
+        - name: Item[Policy][scope]
+          description: Optimization policy scope, such as all or count.
+          in: query
+          schema:
+            type: string
+          x-speakeasy-name-override: itemPolicyScope
+        - name: Item[Policy][value]
+          description: Maximum item count when the policy scope is count.
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+          x-speakeasy-name-override: itemPolicyValue
+        - name: Item[Policy][unwatched]
+          description: Whether to optimize only unwatched items.
+          in: query
+          schema:
+            $ref: "#/components/schemas/BoolInt"
+          x-speakeasy-name-override: itemPolicyUnwatched
+        - name: Item[Device][profile]
+          description: Client device profile used for a custom optimization target.
+          in: query
+          schema:
+            type: string
+          x-speakeasy-name-override: itemDeviceProfile
+        - name: Item[MediaSettings][videoQuality]
+          description: Video quality index for a custom optimization target.
+          in: query
+          schema:
+            type: integer
+          x-speakeasy-name-override: itemVideoQuality
+        - name: Item[MediaSettings][videoResolution]
+          description: Maximum video resolution for a custom optimization target.
+          in: query
+          schema:
+            type: string
+          x-speakeasy-name-override: itemVideoResolution
+        - name: Item[MediaSettings][maxVideoBitrate]
+          description: Maximum video bitrate in kbps for a custom optimization target.
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+          x-speakeasy-name-override: itemMaxVideoBitrate
       responses:
         '200':
           $ref: "#/components/responses/slash-post-responses-200"
