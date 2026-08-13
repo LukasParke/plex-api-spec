@@ -1,0 +1,41 @@
+name: Breaking Changes
+
+# Compares the PR's spec against the base branch with oasdiff and fails on
+# changes that would break existing API clients (and the eight generated
+# SDKs). Label the PR 'breaking-change' to acknowledge an intentional
+# break: the report is still produced, but the job passes.
+
+on:
+  pull_request:
+    # No branches filter: stacked PRs (base != main) get the gate too.
+    paths:
+      - "plex-api-spec.yaml"
+      - ".github/workflows/breaking-changes.yml"
+
+permissions:
+  contents: read
+  pull-requests: write # lets oasdiff post its review link as a PR comment
+
+concurrency:
+  group: breaking-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  breaking-changes:
+    name: Breaking-change gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Fetch base branch
+        run: git fetch --depth=1 origin "$GITHUB_BASE_REF"
+
+      - name: Detect breaking changes (oasdiff)
+        uses: oasdiff/oasdiff-action/breaking@033c15c845bef10f148afb0fa781bf1b2a7fe1bf # v0.1.12
+        with:
+          base: "origin/${{ github.base_ref }}:plex-api-spec.yaml"
+          revision: "HEAD:plex-api-spec.yaml"
+          fail-on: ${{ !contains(github.event.pull_request.labels.*.name, 'breaking-change') && 'WARN' || '' }}
+          github-token: ${{ github.token }}
