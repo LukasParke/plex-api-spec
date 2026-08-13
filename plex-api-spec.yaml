@@ -20906,6 +20906,68 @@ paths:
             text/html:
               schema:
                 type: string
+  /api/invites/requests/{inviteId}:
+    put:
+      operationId: acceptInvite
+      summary: Accept an Invite
+      tags:
+        - Users
+      description: Accept a pending Plex friend, home, or server invitation.
+      servers:
+        - url: https://plex.tv
+      parameters:
+        - $ref: "#/components/parameters/accepts"
+        - $ref: "#/components/parameters/X-Plex-Client-Identifier"
+        - $ref: "#/components/parameters/X-Plex-Product"
+        - $ref: "#/components/parameters/X-Plex-Version"
+        - $ref: "#/components/parameters/X-Plex-Platform"
+        - $ref: "#/components/parameters/X-Plex-Platform-Version"
+        - $ref: "#/components/parameters/X-Plex-Device"
+        - $ref: "#/components/parameters/X-Plex-Model"
+        - $ref: "#/components/parameters/X-Plex-Device-Vendor"
+        - $ref: "#/components/parameters/X-Plex-Device-Name"
+        - $ref: "#/components/parameters/X-Plex-Marketplace"
+        - name: inviteId
+          description: The pending invitation ID.
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: friend
+          description: Whether the invitation includes a friend relationship.
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/BoolInt"
+        - name: home
+          description: Whether the invitation includes Plex Home membership.
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/BoolInt"
+        - name: server
+          description: Whether the invitation includes access to a shared server.
+          in: query
+          required: true
+          schema:
+            $ref: "#/components/schemas/BoolInt"
+      responses:
+        '200':
+          description: Invitation accepted.
+          content:
+            application/xml:
+              schema:
+                type: object
+                additionalProperties: true
+        '400':
+          $ref: "#/components/responses/400"
+          description: Bad Request - Invalid invitation or parameters
+        '401':
+          $ref: "#/components/responses/401"
+          description: Unauthorized - Authentication token is missing or invalid
+        '404':
+          $ref: "#/components/responses/404"
+          description: Invitation not found
   /butler/{butlerTask}:
     delete:
       operationId: stopTask
