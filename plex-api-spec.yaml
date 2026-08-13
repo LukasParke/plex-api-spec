@@ -1120,7 +1120,7 @@ paths:
           in: query
           schema:
             type: string
-          example: 123
+          example: '123'
         - name: time
           description: The current time offset of playback in ms.
           in: query
@@ -1199,12 +1199,6 @@ paths:
         - name: url
           description: Alternative to key/ratingKey (legacy).
           in: query
-          schema:
-            type: string
-        - name: X-Plex-Client-Identifier
-          description: Unique per client.
-          in: header
-          required: true
           schema:
             type: string
         - name: X-Plex-Session-Identifier
@@ -6812,7 +6806,7 @@ paths:
           in: query
           schema:
             type: string
-            format: url
+            format: uri
           example: file:///storage%2Femulated%2F0%2FArcher-S01E01.mkv
         - name: virtualFilePath
           description: A virtual path to use when the url is opaque.
@@ -9529,7 +9523,8 @@ paths:
             type: array
             items:
               type: string
-          example: device[]=device://tv.plex.grabbers.hdhomerun/1053C0CA
+          example:
+            - device://tv.plex.grabbers.hdhomerun/1053C0CA
         - name: language
           description: The language.
           in: query
@@ -17673,7 +17668,9 @@ paths:
             type: array
             items:
               type: string
-          example: viewedAt:desc,accountID
+          example:
+            - viewedAt:desc
+            - accountID
         - name: excludeElements
           description: Comma-separated list of elements to exclude from the response
           in: query
@@ -20064,7 +20061,7 @@ paths:
           in: query
           schema:
             type: string
-            pattern: ^\d[x:]\d$
+            pattern: ^\d+[x:]\d+$
           example: 1080x1080
         - name: protocol
           description: "Indicates the network streaming protocol to be used for the transcode session: * 'http' - include the file in the http response such as MKV streaming * 'hls' - hls stream (RFC 8216) * 'dash' - dash stream (ISO/IEC 23009-1:2022)"
@@ -20133,12 +20130,6 @@ paths:
             minimum: 0
             maximum: 99
           example: 50
-        - name: X-Plex-Client-Identifier
-          description: Unique per client.
-          in: header
-          required: true
-          schema:
-            type: string
         - name: X-Plex-Client-Profile-Extra
           description: See [Profile Augmentations](#section/API-Info/Profile-Augmentations) .
           in: header
@@ -20151,30 +20142,6 @@ paths:
           schema:
             type: string
           example: generic
-        - name: X-Plex-Device
-          description: Device the client is running on
-          in: header
-          schema:
-            type: string
-          example: Windows
-        - name: X-Plex-Model
-          description: Model of the device the client is running on
-          in: header
-          schema:
-            type: string
-          example: standalone
-        - name: X-Plex-Platform
-          description: Client Platform
-          in: header
-          schema:
-            type: string
-          example: Chrome
-        - name: X-Plex-Platform-Version
-          description: Client Platform Version
-          in: header
-          schema:
-            type: string
-          example: 135
         - name: X-Plex-Session-Identifier
           description: Unique per client playback session.  Used if a client can playback multiple items at a time (such as a browser with multiple tabs)
           in: header
@@ -20724,7 +20691,7 @@ paths:
           in: query
           schema:
             type: string
-            pattern: ^\d[x:]\d$
+            pattern: ^\d+[x:]\d+$
           example: 1080x1080
         - name: protocol
           description: "Indicates the network streaming protocol to be used for the transcode session: * 'http' - include the file in the http response such as MKV streaming * 'hls' - hls stream (RFC 8216) * 'dash' - dash stream (ISO/IEC 23009-1:2022)"
@@ -20793,12 +20760,6 @@ paths:
             minimum: 0
             maximum: 99
           example: 50
-        - name: X-Plex-Client-Identifier
-          description: Unique per client.
-          in: header
-          required: true
-          schema:
-            type: string
         - name: X-Plex-Client-Profile-Extra
           description: See [Profile Augmentations](#section/API-Info/Profile-Augmentations) .
           in: header
@@ -20811,30 +20772,6 @@ paths:
           schema:
             type: string
           example: generic
-        - name: X-Plex-Device
-          description: Device the client is running on
-          in: header
-          schema:
-            type: string
-          example: Windows
-        - name: X-Plex-Model
-          description: Model of the device the client is running on
-          in: header
-          schema:
-            type: string
-          example: standalone
-        - name: X-Plex-Platform
-          description: Client Platform
-          in: header
-          schema:
-            type: string
-          example: Chrome
-        - name: X-Plex-Platform-Version
-          description: Client Platform Version
-          in: header
-          schema:
-            type: string
-          example: 135
         - name: X-Plex-Session-Identifier
           description: Unique per client playback session.  Used if a client can playback multiple items at a time (such as a browser with multiple tabs)
           in: header
@@ -32282,17 +32219,6 @@ paths:
           required: true
           schema:
             type: integer
-        - name: type
-          description: Filter by metadata type (1=movie, 2=show, 3=season, 4=episode, 8=artist, 9=album, 10=track)
-          in: query
-          schema:
-            type: integer
-          x-speakeasy-name-override: mediaType
-        - name: sort
-          description: Sort key and direction (e.g. addedAt:desc, titleSort)
-          in: query
-          schema:
-            type: string
         - name: includeMeta
           description: Adds the Meta object to the response
           in: query
@@ -33624,12 +33550,6 @@ paths:
           required: true
           schema:
             type: integer
-        - name: type
-          description: Item type
-          in: query
-          schema:
-            type: integer
-          x-speakeasy-name-override: mediaType
         - name: field.query
           description: The "field" stands in for any field, the value is a partial string for matching
           in: query
@@ -36719,12 +36639,6 @@ paths:
           required: true
           schema:
             type: integer
-        - name: type
-          description: Item type
-          in: query
-          schema:
-            type: integer
-          x-speakeasy-name-override: mediaType
       responses:
         '200':
           description: OK
@@ -38188,17 +38102,6 @@ paths:
           description: Section identifier
           in: path
           required: true
-          schema:
-            type: integer
-        - name: type
-          description: The metadata type to filter on
-          in: query
-          schema:
-            type: integer
-          x-speakeasy-name-override: mediaType
-        - name: sort
-          description: The metadata type to filter on
-          in: query
           schema:
             type: integer
       responses:
@@ -46022,7 +45925,10 @@ paths:
             type: array
             items:
               type: string
-          example: 46.1,44.1,45.1
+          example:
+            - '46.1'
+            - '44.1'
+            - '45.1'
       responses:
         '200':
           description: OK
@@ -50659,7 +50565,7 @@ paths:
           in: query
           schema:
             type: string
-            pattern: ^\d[x:]\d$
+            pattern: ^\d+[x:]\d+$
           example: 1080x1080
         - name: protocol
           description: "Indicates the network streaming protocol to be used for the transcode session: * 'http' - include the file in the http response such as MKV streaming * 'hls' - hls stream (RFC 8216) * 'dash' - dash stream (ISO/IEC 23009-1:2022)"
@@ -50728,12 +50634,6 @@ paths:
             minimum: 0
             maximum: 99
           example: 50
-        - name: X-Plex-Client-Identifier
-          description: Unique per client.
-          in: header
-          required: true
-          schema:
-            type: string
         - name: X-Plex-Client-Profile-Extra
           description: See [Profile Augmentations](#section/API-Info/Profile-Augmentations) .
           in: header
@@ -50746,30 +50646,6 @@ paths:
           schema:
             type: string
           example: generic
-        - name: X-Plex-Device
-          description: Device the client is running on
-          in: header
-          schema:
-            type: string
-          example: Windows
-        - name: X-Plex-Model
-          description: Model of the device the client is running on
-          in: header
-          schema:
-            type: string
-          example: standalone
-        - name: X-Plex-Platform
-          description: Client Platform
-          in: header
-          schema:
-            type: string
-          example: Chrome
-        - name: X-Plex-Platform-Version
-          description: Client Platform Version
-          in: header
-          schema:
-            type: string
-          example: 135
         - name: X-Plex-Session-Identifier
           description: Unique per client playback session.  Used if a client can playback multiple items at a time (such as a browser with multiple tabs)
           in: header
@@ -54306,7 +54182,6 @@ paths:
               uri: library://82503060-0d68-4603-b594-8b071d54819e/item/%2Flibrary%2Fmetadata%2F146
             locationID: -1
             Policy:
-              value: ''
               scope: all
               unwatched: 0
             target: ''
@@ -55700,7 +55575,7 @@ components:
       in: query
       schema:
         type: string
-        pattern: ^\d[x:]\d$
+        pattern: ^\d+[x:]\d+$
       example: 1080x1080
     protocol:
       name: protocol
@@ -55816,7 +55691,7 @@ components:
       in: query
       schema:
         type: string
-        pattern: ^\d[x:]\d$
+        pattern: ^\d+[x:]\d+$
       example: 1080x1080
     X-Plex-Client-Identifier:
       name: X-Plex-Client-Identifier

@@ -9,9 +9,11 @@ plugins:
   - ./plugins/arazzo-ref-rules.js
 rules:
   plex/operation-ref-resolves: error
-  # Ratchet: pre-existing violations in the generated spec (duplicate
-  # X-Plex-* params in transcode/timeline ops; two trailing-slash paths).
+  # The duplicate X-Plex-* params in the transcode/timeline ops are fixed,
+  # so this is promoted to error per the ratchet note that used to live
+  # here. If the generator reintroduces duplicates, CI now catches it.
+  operation-parameters-unique: error
+  # Ratchet: two pre-existing trailing-slash paths in the generated spec.
   # Warn now, promote to error once the generator is fixed. Do not add new
   # violations.
-  operation-parameters-unique: warn
   no-path-trailing-slash: warn
