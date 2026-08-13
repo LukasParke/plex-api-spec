@@ -48818,6 +48818,9 @@ paths:
           in: query
           schema:
             type: string
+            enum:
+              - all
+              - count
           x-speakeasy-name-override: itemPolicyScope
         - name: Item[Policy][value]
           description: Maximum item count when the policy scope is count.
