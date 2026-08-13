@@ -10,8 +10,8 @@
     "validate": "npm run format && npm run lint"
   },
   "devDependencies": {
-    "@redocly/cli": "2.39.0",
-    "prettier": "^3.9.5",
+    "@redocly/cli": "2.43.2",
+    "prettier": "^3.9.6",
     "prettier-plugin-openapi": "^1.0.15"
   }
 }
