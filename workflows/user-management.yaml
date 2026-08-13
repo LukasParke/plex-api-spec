@@ -1,0 +1,86 @@
+arazzo: '1.0.0'
+info:
+  title: Plex User and Account Management
+  version: 1.0.0
+  description: |
+    Manages Plex user accounts, home users, and server access including
+    retrieving account details, listing home users, and checking server resources.
+
+sourceDescriptions:
+  - name: plex-api
+    url: ../plex-api-spec.yaml
+    type: openapi
+
+workflows:
+  - workflowId: userManagement
+    summary: Inspect user accounts and server access
+    description: |
+      Three-step workflow:
+      1. Get the authenticated user's MyPlex account details
+      2. List all home users associated with the account
+      3. Retrieve available server resources
+    inputs:
+      type: object
+      properties:
+        plexToken:
+          type: string
+          description: X-Plex-Token for authenticated requests
+        baseUrl:
+          type: string
+          description: Base URL of the Plex server
+          default: http://localhost:32400
+      required:
+        - plexToken
+        - baseUrl
+    steps:
+      - stepId: getAccount
+        description: Retrieve the current user's MyPlex account
+        operationId: $sourceDescriptions.plex-api.getMyPlexAccount
+        parameters:
+          - name: X-Plex-Token
+            in: header
+            value: $inputs.plexToken
+        successCriteria:
+          - condition: $statusCode == 200
+          - condition: $response.body.user.id != null
+        outputs:
+          accountId: $response.body.user.id
+          accountUsername: $response.body.user.username
+          accountEmail: $response.body.user.email
+          accountSubscription: $response.body.user.subscription.active
+
+      - stepId: listHomeUsers
+        description: List all home users managed by this account
+        operationId: $sourceDescriptions.plex-api.getHomeUsers
+        parameters:
+          - name: X-Plex-Token
+            in: header
+            value: $inputs.plexToken
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          homeUsers: $response.body.MediaContainer.User
+          homeUserCount: $response.body.MediaContainer.size
+
+      - stepId: getServerResources
+        description: Retrieve available Plex server resources
+        operationId: $sourceDescriptions.plex-api.getServerResources
+        parameters:
+          - name: X-Plex-Token
+            in: header
+            value: $inputs.plexToken
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          servers: $response.body
+          serverCount: $response.body.length
+
+    outputs:
+      accountId: $steps.getAccount.outputs.accountId
+      accountUsername: $steps.getAccount.outputs.accountUsername
+      accountEmail: $steps.getAccount.outputs.accountEmail
+      accountSubscription: $steps.getAccount.outputs.accountSubscription
+      homeUsers: $steps.listHomeUsers.outputs.homeUsers
+      homeUserCount: $steps.listHomeUsers.outputs.homeUserCount
+      servers: $steps.getServerResources.outputs.servers
+      serverCount: $steps.getServerResources.outputs.serverCount

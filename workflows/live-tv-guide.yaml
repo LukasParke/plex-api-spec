@@ -1,0 +1,92 @@
+arazzo: '1.0.0'
+info:
+  title: Live TV and DVR Workflow
+  version: 1.0.0
+  description: |
+    Manages Live TV and DVR functionality including retrieving DVR devices,
+    browsing the electronic program guide (EPG), and listing recordings.
+
+sourceDescriptions:
+  - name: plex-api
+    url: ../plex-api-spec.yaml
+    type: openapi
+
+workflows:
+  - workflowId: liveTvGuide
+    summary: Browse Live TV guide and DVR recordings
+    description: |
+      Three-step workflow:
+      1. List available DVR devices
+      2. Search the EPG for upcoming programs
+      3. List existing DVR recordings
+    inputs:
+      type: object
+      properties:
+        plexToken:
+          type: string
+          description: X-Plex-Token for authenticated requests
+        baseUrl:
+          type: string
+          description: Base URL of the Plex server
+          default: http://localhost:32400
+        epgQuery:
+          type: string
+          description: Optional search term for EPG (channel name, show title)
+      required:
+        - plexToken
+        - baseUrl
+    steps:
+      - stepId: listDVRs
+        description: Retrieve all configured DVR devices
+        operationId: $sourceDescriptions.plex-api.listDVRs
+        parameters:
+          - name: X-Plex-Token
+            in: header
+            value: $inputs.plexToken
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          dvrs: $response.body.MediaContainer.Dvr
+          dvrCount: $response.body.MediaContainer.size
+
+      - stepId: searchEPG
+        description: Search the electronic program guide
+        operationId: $sourceDescriptions.plex-api.searchEPG
+        parameters:
+          - name: query
+            in: query
+            value: >
+              ${
+                $inputs.epgQuery != null
+                  ? $inputs.epgQuery
+                  : ''
+              }
+          - name: X-Plex-Token
+            in: header
+            value: $inputs.plexToken
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          epgResults: $response.body.MediaContainer.Hub
+          epgResultCount: $response.body.MediaContainer.size
+
+      - stepId: getRecordings
+        description: List all DVR recordings
+        operationId: $sourceDescriptions.plex-api.getDVRRecordings
+        parameters:
+          - name: X-Plex-Token
+            in: header
+            value: $inputs.plexToken
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          recordings: $response.body.MediaContainer.Video
+          recordingCount: $response.body.MediaContainer.size
+
+    outputs:
+      dvrs: $steps.listDVRs.outputs.dvrs
+      dvrCount: $steps.listDVRs.outputs.dvrCount
+      epgResults: $steps.searchEPG.outputs.epgResults
+      epgResultCount: $steps.searchEPG.outputs.epgResultCount
+      recordings: $steps.getRecordings.outputs.recordings
+      recordingCount: $steps.getRecordings.outputs.recordingCount

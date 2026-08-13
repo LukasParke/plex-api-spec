@@ -1,0 +1,86 @@
+arazzo: '1.0.0'
+info:
+  title: Browse Plex Library
+  version: 1.0.0
+  description: |
+    Navigates a Plex Media Server library by listing available sections
+    and then retrieving the items within a specific section. This workflow
+    demonstrates the common pattern of discovering content hierarchies.
+
+sourceDescriptions:
+  - name: plex-api
+    url: ../plex-api-spec.yaml
+    type: openapi
+
+workflows:
+  - workflowId: browseLibrary
+    summary: Discover library sections and list their contents
+    description: |
+      Two-step workflow:
+      1. Retrieve all library sections (Movies, TV Shows, Music, etc.)
+      2. List all items within a selected section
+    inputs:
+      type: object
+      properties:
+        plexToken:
+          type: string
+          description: X-Plex-Token for authenticated requests
+        baseUrl:
+          type: string
+          description: Base URL of the Plex server
+          default: http://localhost:32400
+        sectionKey:
+          type: integer
+          description: Optional specific section key to browse (if omitted, uses first available)
+      required:
+        - plexToken
+        - baseUrl
+    steps:
+      - stepId: listSections
+        description: Retrieve all library sections from the server
+        operationId: $sourceDescriptions.plex-api.getSections
+        parameters:
+          - name: X-Plex-Token
+            in: header
+            value: $inputs.plexToken
+        successCriteria:
+          - condition: $statusCode == 200
+          - condition: $response.body.MediaContainer.size > 0
+        outputs:
+          sections: $response.body.MediaContainer.Directory
+          firstSectionKey: $response.body.MediaContainer.Directory[0].key
+          firstSectionTitle: $response.body.MediaContainer.Directory[0].title
+
+      - stepId: listSectionItems
+        description: List all items in the selected or first available section
+        operationId: $sourceDescriptions.plex-api.listContent
+        parameters:
+          - name: sectionId
+            in: path
+            value: >
+              ${
+                $inputs.sectionKey != null
+                  ? $inputs.sectionKey
+                  : $steps.listSections.outputs.firstSectionKey
+              }
+          - name: X-Plex-Token
+            in: header
+            value: $inputs.plexToken
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          itemCount: $response.body.MediaContainer.size
+          items: $response.body.MediaContainer.Metadata
+          sectionTitle: $steps.listSections.outputs.firstSectionTitle
+
+    outputs:
+      sections: $steps.listSections.outputs.sections
+      selectedSectionKey: >
+        ${
+          $inputs.sectionKey != null
+            ? $inputs.sectionKey
+            : $steps.listSections.outputs.firstSectionKey
+        }
+      selectedSectionTitle: $steps.listSectionItems.outputs.sectionTitle
+      itemCount: $steps.listSectionItems.outputs.itemCount
+      items: $steps.listSectionItems.outputs.items

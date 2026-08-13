@@ -1,0 +1,95 @@
+arazzo: '1.0.0'
+info:
+  title: Manage Plex Playlists
+  version: 1.0.0
+  description: |
+    Demonstrates playlist management operations including listing existing
+    playlists, creating a new playlist, and retrieving playlist details.
+
+sourceDescriptions:
+  - name: plex-api
+    url: ../plex-api-spec.yaml
+    type: openapi
+
+workflows:
+  - workflowId: managePlaylists
+    summary: List, create, and inspect playlists
+    description: |
+      Three-step workflow:
+      1. List all existing playlists
+      2. Create a new playlist (if title is provided)
+      3. Retrieve watchlist for the user
+    inputs:
+      type: object
+      properties:
+        plexToken:
+          type: string
+          description: X-Plex-Token for authenticated requests
+        baseUrl:
+          type: string
+          description: Base URL of the Plex server
+          default: http://localhost:32400
+        newPlaylistTitle:
+          type: string
+          description: Optional title for a new playlist to create
+      required:
+        - plexToken
+        - baseUrl
+    steps:
+      - stepId: listPlaylists
+        description: Retrieve all playlists for the current user
+        operationId: $sourceDescriptions.plex-api.listPlaylists
+        parameters:
+          - name: X-Plex-Token
+            in: header
+            value: $inputs.plexToken
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          playlists: $response.body.MediaContainer.Playlist
+          playlistCount: $response.body.MediaContainer.size
+
+      - stepId: createPlaylist
+        description: Create a new playlist if a title is provided
+        operationId: $sourceDescriptions.plex-api.createPlaylist
+        parameters:
+          - name: title
+            in: query
+            value: $inputs.newPlaylistTitle
+          - name: type
+            in: query
+            value: video
+          - name: X-Plex-Token
+            in: header
+            value: $inputs.plexToken
+        successCriteria:
+          - condition: $statusCode == 200
+          - condition: $inputs.newPlaylistTitle != null
+        onFailure:
+          - name: skipIfNoTitle
+            type: goto
+            stepId: getWatchlist
+            criteria:
+              - condition: $inputs.newPlaylistTitle == null
+        outputs:
+          newPlaylistKey: $response.body.MediaContainer.Playlist[0].ratingKey
+
+      - stepId: getWatchlist
+        description: Retrieve the user's watchlist
+        operationId: $sourceDescriptions.plex-api.getWatchlist
+        parameters:
+          - name: X-Plex-Token
+            in: header
+            value: $inputs.plexToken
+        successCriteria:
+          - condition: $statusCode == 200
+        outputs:
+          watchlistItems: $response.body.MediaContainer.Metadata
+          watchlistCount: $response.body.MediaContainer.size
+
+    outputs:
+      playlists: $steps.listPlaylists.outputs.playlists
+      playlistCount: $steps.listPlaylists.outputs.playlistCount
+      newPlaylistKey: $steps.createPlaylist.outputs.newPlaylistKey
+      watchlistItems: $steps.getWatchlist.outputs.watchlistItems
+      watchlistCount: $steps.getWatchlist.outputs.watchlistCount
