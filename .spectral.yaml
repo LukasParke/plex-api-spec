@@ -1,0 +1,11 @@
+# Spectral lint configuration, run in CI on every pull request alongside
+# Redocly (see redocly.yaml). Spectral covers rules Redocly's recommended
+# set does not, e.g. operation-tag-defined and info-description.
+#   npx @stoplight/spectral-cli lint plex-api-spec.yaml --fail-severity=warn
+extends: ["spectral:oas"]
+rules:
+  # This document is OpenAPI 3.1, where security requirement arrays on
+  # non-OAuth2 schemes MAY contain role names ("shared user" / "admin" on
+  # the apiKey `token` scheme). Spectral implements the 3.0 semantics
+  # (array must be empty) and reports false positives, so it is disabled.
+  oas3-operation-security-defined: off

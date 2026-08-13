@@ -2,6 +2,18 @@ openapi: 3.1.1
 info:
   title: Plex Media Server
   version: 1.1.1
+  description: |
+    An open-source OpenAPI specification for the Plex Media Server API, plus the
+    plex.tv endpoints needed for authentication and resource discovery.
+
+    The server returns XML by default; set the `Accept: application/json` header
+    to receive JSON, which is what this specification documents and what new
+    applications should use.
+
+    Full rendered documentation is available at [plexapi.dev](https://plexapi.dev).
+  contact:
+    name: Plex API Specification
+    url: https://github.com/LukasParke/plex-api-spec
   license:
     name: Apache 2.0
     url: https://www.apache.org/licenses/LICENSE-2.0.html
@@ -157,6 +169,12 @@ tags:
     description: |
       This describes the API for searching and applying updates to the Plex Media Server.
       Updates to the status can be observed via the Event API.
+  - name: Authentication
+    description: Endpoints hosted on plex.tv for signing in and retrieving the authenticated user's account details. Sign-in returns the access token used to authenticate against a PMS.
+  - name: Users
+    description: Endpoints hosted on plex.tv for listing the accounts (friends and Plex Home users) with access to your servers.
+  - name: Plex
+    description: Endpoints hosted on plex.tv for discovering the resources (servers and players) linked to a Plex account.
 x-tagGroups:
   - name: General
     tags:
@@ -197,6 +215,11 @@ x-tagGroups:
       - EPG
       - Subscriptions
       - Live TV
+  - name: Plex.tv
+    tags:
+      - Authentication
+      - Users
+      - Plex
 paths:
   /:
     get:
