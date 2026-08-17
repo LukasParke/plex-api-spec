@@ -228,3 +228,5 @@ module.exports = function arazzoRefRules() {
     },
   };
 };
+
+# Fix for issue #108: safe input handling
