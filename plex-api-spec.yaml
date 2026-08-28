@@ -16352,7 +16352,7 @@ paths:
               schema:
                 type: string
         '401':
-          description: Unauthorized - Returned if the X-Plex-Token is missing from the header or query.
+          description: Unauthorized - Returned if the X-Plex-Token is missing from the header.
           content:
             application/json:
               schema:
@@ -18954,7 +18954,7 @@ paths:
                     message: X-Plex-Client-Identifier is missing
                     status: 400
         '401':
-          description: Unauthorized - Returned if the X-Plex-Token is missing from the header or query.
+          description: Unauthorized - Returned if the X-Plex-Token is missing from the header.
           content:
             application/json:
               schema:
@@ -19342,7 +19342,7 @@ paths:
                     message: X-Plex-Client-Identifier is missing
                     status: 400
         '401':
-          description: Unauthorized - Returned if the X-Plex-Token is missing from the header or query.
+          description: Unauthorized - Returned if the X-Plex-Token is missing from the header.
           content:
             application/json:
               schema:
@@ -19769,7 +19769,7 @@ paths:
                     message: X-Plex-Client-Identifier is missing
                     status: 400
         '401':
-          description: Unauthorized - Returned if the X-Plex-Token is missing from the header or query.
+          description: Unauthorized - Returned if the X-Plex-Token is missing from the header.
           content:
             application/json:
               schema:
