@@ -28487,6 +28487,8 @@ paths:
                 $ref: "#/components/schemas/SuccessResponse"
               example:
                 success: true
+        '202':
+          $ref: "#/components/responses/202"
         '400':
           $ref: "#/components/responses/400"
           description: Bad Request - Invalid parameters or malformed request
@@ -31294,6 +31296,8 @@ paths:
                 $ref: "#/components/schemas/SuccessResponse"
               example:
                 success: true
+        '202':
+          $ref: "#/components/responses/202"
         '400':
           $ref: "#/components/responses/400"
           description: Bad Request - Invalid parameters or malformed request
@@ -55886,6 +55890,10 @@ components:
   responses:
     '200':
       description: OK
+      content:
+        text/html: {}
+    '202':
+      description: Accepted
       content:
         text/html: {}
     '204':
