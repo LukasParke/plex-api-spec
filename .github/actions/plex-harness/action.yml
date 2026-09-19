@@ -24,7 +24,6 @@ runs:
   steps:
     - name: Clone Arbiter (pinned)
       shell: bash
-      working-directory: ${{ github.workspace }}
       run: |
         git clone https://github.com/LukasParke/arbiter.git ../arbiter
         git -C ../arbiter checkout "${{ inputs.arbiter-ref }}"
@@ -42,7 +41,6 @@ runs:
 
     - name: Build Arbiter
       shell: bash
-      working-directory: ${{ github.workspace }}
       run: |
         cd ../arbiter
         pnpm install --frozen-lockfile
@@ -69,7 +67,6 @@ runs:
 
     - name: Start Plex Media Server
       shell: bash
-      working-directory: ${{ github.workspace }}
       run: |
         docker compose up -d pms
         for i in {1..60}; do
@@ -87,10 +84,9 @@ runs:
     - name: Extract Plex token
       id: token
       shell: bash
-      working-directory: ${{ github.workspace }}
       run: |
         for i in {1..30}; do
-          TOKEN=$(docker exec plex-api-test cat "/config/Library/Application Support/Plex Media Server/Preferences.xml" 2>/dev/null | grep -oP 'PlexOnlineToken="\K[^"]+' || true)
+          TOKEN=$(docker exec plex-api-test cat "/config/Library/Application Support/Plex Media Server/Preferences.xml" 2>/dev/null | grep -oP 'PlexOnlineToken=\"\K[^\"]+' || true)
           if [ -n "$TOKEN" ]; then
             echo "::add-mask::$TOKEN"
             echo "token=$TOKEN" >> "$GITHUB_OUTPUT"
