@@ -50497,6 +50497,11 @@ paths:
         - $ref: "#/components/parameters/transcodeType"
         - $ref: "#/components/parameters/transcodeSessionId"
         - $ref: "#/components/parameters/advancedSubtitles"
+        - name: session
+          description: Playback session UUID used by music transcode clients.
+          in: query
+          schema:
+            type: string
         - name: platform
           description: Client platform (some clients send this in addition to headers).
           in: query
@@ -50597,6 +50602,18 @@ paths:
             type: integer
             minimum: 0
           example: 5000
+        - name: maxAudioBitrate
+          description: Maximum audio bitrate for music transcodes, in kbps.
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+        - name: X-Plex-Client-Profile-Extra
+          description: Profile augmentations supplied as a query parameter by some music transcode clients.
+          in: query
+          schema:
+            type: string
+          x-speakeasy-name-override: clientProfileExtraQuery
         - name: offset
           description: Offset from the start of the media (in seconds).
           in: query
