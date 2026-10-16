@@ -32272,6 +32272,7 @@ paths:
         - $ref: "#/components/parameters/X-Plex-Device-Vendor"
         - $ref: "#/components/parameters/X-Plex-Device-Name"
         - $ref: "#/components/parameters/X-Plex-Marketplace"
+        - $ref: "#/components/parameters/X-Plex-Pms-Api-Version"
         - $ref: "#/components/parameters/X-Plex-Container-Start"
         - $ref: "#/components/parameters/X-Plex-Container-Size"
         - $ref: "#/components/parameters/mediaQuery"
@@ -32281,6 +32282,58 @@ paths:
           required: true
           schema:
             type: integer
+        - name: updatedAt>>
+          description: |-
+            Return current items whose updatedAt is strictly greater than this Unix timestamp in seconds.
+            The query key is updatedAt>> (URL-encoded as updatedAt%3E%3E), for example updatedAt%3E%3E=1792000000.
+            Items updated exactly at the supplied timestamp are excluded; overlap polling windows and deduplicate ratingKey values to avoid missing same-second updates.
+            Verified for movies, episodes, and tracks on PMS 1.43.4.10903. Support on other server versions and library types may vary.
+            This filters current items, not a durable change log: deleted items are not returned, and it does not guarantee that every file, part, or stream change updates the parent timestamp.
+          in: query
+          schema:
+            type: integer
+            format: int64
+          example: 1792000000
+          x-speakeasy-name-override: updatedAtAfter
+        - name: updatedAt<<
+          description: |-
+            Return current items whose updatedAt is strictly less than this Unix timestamp in seconds.
+            The query key is updatedAt<< (URL-encoded as updatedAt%3C%3C), for example updatedAt%3C%3C=1792054845.
+            Items updated exactly at the supplied timestamp are excluded. Combine with updatedAt>> to request a bounded interval; both conditions must match.
+            Verified for movies on PMS 1.43.4.10903. Support on other server versions and library types may vary.
+            This filters current items and does not provide an atomic snapshot, a replay cursor, or deleted items.
+          in: query
+          schema:
+            type: integer
+            format: int64
+          example: 1792054845
+          x-speakeasy-name-override: updatedAtBefore
+        - name: addedAt>>
+          description: |-
+            Return current items whose addedAt is strictly greater than this Unix timestamp in seconds.
+            The query key is addedAt>> (URL-encoded as addedAt%3E%3E), for example addedAt%3E%3E=1791200000.
+            Items added exactly at the supplied timestamp are excluded; overlap polling windows and deduplicate ratingKey values to avoid missing same-second additions.
+            Verified for movies on PMS 1.43.4.10903. Support on other server versions and library types may vary.
+            This filters surviving additions only; it does not identify later metadata updates or deleted items.
+          in: query
+          schema:
+            type: integer
+            format: int64
+          example: 1791200000
+          x-speakeasy-name-override: addedAtAfter
+        - name: addedAt<<
+          description: |-
+            Return current items whose addedAt is strictly less than this Unix timestamp in seconds.
+            The query key is addedAt<< (URL-encoded as addedAt%3C%3C), for example addedAt%3C%3C=1791252847.
+            Items added exactly at the supplied timestamp are excluded. Combine with addedAt>> to request a bounded interval; both conditions must match.
+            Support on server versions and library types may vary.
+            This filters surviving additions only; it does not identify later metadata updates or deleted items, or provide an atomic snapshot.
+          in: query
+          schema:
+            type: integer
+            format: int64
+          example: 1791252847
+          x-speakeasy-name-override: addedAtBefore
         - name: includeMeta
           description: Adds the Meta object to the response
           in: query
@@ -32397,10 +32450,16 @@ paths:
           schema:
             $ref: "#/components/schemas/BoolInt"
         - name: includeFields
-          description: Whitelist of fields to return
+          description: |-
+            Comma-separated whitelist of fields to return.
+            With PMS API version 1.0.0 or later, this projection also applies to container attributes.
+            Include size,totalSize,offset alongside item fields when paging, for example ratingKey,updatedAt,size,totalSize,offset.
+            Otherwise the response may omit the pagination attributes needed to determine whether the complete result has been retrieved.
+            This does not necessarily remove nested elements; use excludeElements to request their exclusion.
           in: query
           schema:
             type: string
+          example: ratingKey,updatedAt,size,totalSize,offset
         - name: excludeFields
           description: Blacklist of fields to omit
           in: query
@@ -32426,6 +32485,16 @@ paths:
           in: query
           schema:
             $ref: "#/components/schemas/BoolInt"
+        - name: includeOptionalElements
+          description: |-
+            Comma-separated list of optional elements to add to the response.
+            Use `Stream` to request stream metadata within returned media parts.
+            Unlike `includeElements`, this adds optional elements without excluding the normal response elements.
+          in: query
+          required: false
+          schema:
+            type: string
+          example: Stream
         - name: excludeElements
           description: Comma-separated list of elements to exclude from the response
           in: query
@@ -55854,6 +55923,18 @@ components:
         example: 4.3 build 1057
       example: 4.3 build 1057
       x-speakeasy-name-override: Platform-Version
+    X-Plex-Pms-Api-Version:
+      name: X-Plex-Pms-Api-Version
+      description: |-
+        The PMS API version requested by the client. If omitted, the server assumes `0.0`.
+        Use `1.0` for the published PMS API response customization behavior.
+      in: header
+      required: false
+      schema:
+        type: string
+        example: '1.0'
+      example: '1.0'
+      x-speakeasy-name-override: Pms-Api-Version
     X-Plex-Product:
       name: X-Plex-Product
       description: The name of the client product
