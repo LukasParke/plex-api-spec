@@ -55788,11 +55788,17 @@ components:
         2 = show
         3 = season
         4 = episode
-        5 = artist
-        6 = album
-        7 = track
-        8 = photo_album
-        9 = photo
+        5 = trailer
+        7 = person
+        8 = artist
+        9 = album
+        10 = track
+        12 = clip
+        13 = photo
+        14 = photoalbum
+        15 = playlist
+        16 = playlistfolder
+        18 = collection
 
         E.g. A movie library will not return anything with type 3 as there are no seasons for movie libraries
       in: query
@@ -59371,11 +59377,17 @@ components:
         2 = show
         3 = season
         4 = episode
-        5 = artist
-        6 = album
-        7 = track
-        8 = photo_album
-        9 = photo
+        5 = trailer
+        7 = person
+        8 = artist
+        9 = album
+        10 = track
+        12 = clip
+        13 = photo
+        14 = photoalbum
+        15 = playlist
+        16 = playlistfolder
+        18 = collection
 
         E.g. A movie library will not return anything with type 3 as there are no seasons for movie libraries
       type: integer
@@ -59385,34 +59397,51 @@ components:
         - 3
         - 4
         - 5
-        - 6
         - 7
         - 8
         - 9
+        - 10
+        - 12
+        - 13
+        - 14
+        - 15
+        - 16
+        - 18
       example: 2
       x-speakeasy-enums:
         - MOVIE
         - TV_SHOW
         - SEASON
         - EPISODE
+        - TRAILER
+        - PERSON
         - ARTIST
         - ALBUM
         - TRACK
-        - PHOTO_ALBUM
+        - CLIP
         - PHOTO
+        - PHOTO_ALBUM
+        - PLAYLIST
+        - PLAYLIST_FOLDER
+        - COLLECTION
     MediaTypeString:
-      description: The type of media content in the Plex library. This can represent videos, music, or photos.
+      description: The Plex media type name, corresponding to the numeric MediaType schema.
       type: string
       enum:
         - movie
         - show
         - season
         - episode
+        - trailer
+        - person
         - artist
         - album
         - track
-        - photoalbum
+        - clip
         - photo
+        - photoalbum
+        - playlist
+        - playlistfolder
         - collection
       example: movie
       x-speakeasy-enums:
@@ -59420,11 +59449,16 @@ components:
         - TV_SHOW
         - SEASON
         - EPISODE
+        - TRAILER
+        - PERSON
         - ARTIST
         - ALBUM
         - TRACK
-        - PHOTO_ALBUM
+        - CLIP
         - PHOTO
+        - PHOTO_ALBUM
+        - PLAYLIST
+        - PLAYLIST_FOLDER
         - COLLECTION
     Metadata:
       description: |-
