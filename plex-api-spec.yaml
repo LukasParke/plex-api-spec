@@ -59,7 +59,7 @@ servers:
         default: localhost
       port:
         description: |-
-          The Port number configured on the PMS. Typically (`32400`). 
+          The Port number configured on the PMS. Typically (`32400`).
           If using a reverse proxy, this would be the port number configured on the proxy.
         default: '32400'
       protocol:
@@ -174,7 +174,7 @@ tags:
     description: |-
       The playqueue feature within a media provider
       A play queue represents the current list of media for playback. Although queues are persisted by the server, they should be regarded by the user as a fairly lightweight, an ephemeral list of items queued up for playback in a session.  There is generally one active queue for each type of media (music, video, photos) that can be added to or destroyed and replaced with a fresh queue.
-      Play Queues has a region, which we refer to in this doc (partially for historical reasons) as "Up Next". This region is defined by `playQueueLastAddedItemID` existing on the media container. This follows iTunes' terminology. It is a special region after the currently playing item but before the originally-played items. This enables "Party Mode" listening/viewing, where items can be added on-the-fly, and normal queue playback resumed when completed. 
+      Play Queues has a region, which we refer to in this doc (partially for historical reasons) as "Up Next". This region is defined by `playQueueLastAddedItemID` existing on the media container. This follows iTunes' terminology. It is a special region after the currently playing item but before the originally-played items. This enables "Party Mode" listening/viewing, where items can be added on-the-fly, and normal queue playback resumed when completed.
       You can visualize the play queue as a sliding window in the complete list of media queued for playback. This model is important when scaling to larger play queues (e.g. shuffling 40,000 audio tracks). The client only needs visibility into small areas of the queue at any given time, and the server can optimize access in this fashion.
       All created play queues will have an empty "Up Next" area - unless the item is an album and no `key` is provided. In this case the "Up Next" area will be populated by the contents of the album. This is to allow queueing of multiple albums - since the 'Add to Up Next' will insert after all the tracks. This means that If you're creating a PQ from an album, you can only shuffle it if you set `key`. This is due to the above implicit queueing of albums when no `key` is provided as well as the current limitation that you cannot shuffle a PQ with an "Up Next" area.
       The play queue window advances as the server receives timeline requests. The client needs to retrieve the play queue as the “now playing” item changes. There is no play queue API to update the playing item.
@@ -16292,7 +16292,7 @@ paths:
           example: 1
         - name: includeRelay
           description: |-
-            Include Relay addresses in the results 
+            Include Relay addresses in the results
             E.g: https://10-0-0-25.bbf8e10c7fa20447cacee74cd9914cde.plex.direct:32400
           in: query
           schema:
@@ -20791,7 +20791,7 @@ paths:
 
                 2
                 00:00:11,791 --> 00:00:13,958
-                [BROOK BABBLES] 
+                [BROOK BABBLES]
                 [FLY BUZZES]
 
                 3
@@ -20804,7 +20804,7 @@ paths:
 
                 5
                 00:00:19,833 --> 00:00:20,374
-                [BIRD TWEETS] 
+                [BIRD TWEETS]
                 [WINGS FLAP]
 
                 6
@@ -61671,7 +61671,6 @@ components:
           example: vbr
         canAutoSync:
           description: Indicates if the stream can auto-sync.
-          type: boolean
           example: false
           oneOf:
             - type: boolean
@@ -61839,9 +61838,11 @@ components:
           format: int32
           example: 150
         loudness:
-          description: Integrated loudness in LUFS.
-          type: number
-          example: -14
+          description: Integrated loudness in LUFS. Plex may return a numeric value as a number or numeric string, or the sentinel string "-inf".
+          oneOf:
+            - type: number
+            - type: string
+              pattern: '^(-?[0-9]+(\.[0-9]+)?|-inf)$'
         lra:
           description: Loudness range in LU.
           type: number
@@ -61855,13 +61856,21 @@ components:
           type: boolean
           example: true
         peak:
-          description: Track peak amplitude.
-          type: number
+          description: Track peak amplitude. Plex may return a numeric value as a number or numeric string, or the sentinel string "-inf".
           example: 0.98
+          oneOf:
+            - type: number
+            - type: string
+              pattern: '^(-?[0-9]+(\.[0-9]+)?|-inf)$'
         perfectMatch:
           description: Whether the subtitle is an exact match.
-          type: boolean
           example: true
+          oneOf:
+            - type: boolean
+            - type: string
+              enum:
+                - '0'
+                - '1'
         profile:
           description: Video profile.
           type: string
@@ -61927,12 +61936,22 @@ components:
                   - SUBTITLE = 3 (Subtitle stream)
         timed:
           description: Whether lyrics are timestamped.
-          type: boolean
           example: true
+          oneOf:
+            - type: boolean
+            - type: string
+              enum:
+                - '0'
+                - '1'
         transient:
           description: Whether the subtitle is temporary or downloaded.
-          type: boolean
           example: false
+          oneOf:
+            - type: boolean
+            - type: string
+              enum:
+                - '0'
+                - '1'
         userID:
           description: ID of the user who added the subtitle.
           type: integer
