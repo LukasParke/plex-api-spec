@@ -58421,12 +58421,12 @@ components:
             - $ref: "#/components/schemas/MediaContainer"
             - type: object
               properties:
-                Metadata:
+                Directory:
+                  description: Navigation folders or metadata items returned under the Directory element.
                   type: array
                   items:
                     $ref: "#/components/schemas/Metadata"
-                Directory:
-                  description: Navigation folders or metadata items returned under the Directory element.
+                Metadata:
                   type: array
                   items:
                     $ref: "#/components/schemas/Metadata"
@@ -61932,7 +61932,7 @@ components:
           oneOf:
             - type: number
             - type: string
-              pattern: '^(-?[0-9]+(\.[0-9]+)?|-inf)$'
+              pattern: ^(-?[0-9]+(\.[0-9]+)?|-inf)$
         lra:
           description: Loudness range in LU.
           type: number
@@ -61951,7 +61951,7 @@ components:
           oneOf:
             - type: number
             - type: string
-              pattern: '^(-?[0-9]+(\.[0-9]+)?|-inf)$'
+              pattern: ^(-?[0-9]+(\.[0-9]+)?|-inf)$
         perfectMatch:
           description: Whether the subtitle is an exact match.
           example: true
