@@ -8594,35 +8594,29 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/MediaContainerWithDirectory"
+                type: object
+                properties:
+                  MediaContainer:
+                    allOf:
+                      - $ref: "#/components/schemas/MediaContainer"
+                      - type: object
+                        properties:
+                          Directory:
+                            type: array
+                            items:
+                              $ref: "#/components/schemas/LibrarySection"
               example:
                 MediaContainer:
-                  identifier: example
-                  offset: 1
                   size: 1
-                  totalSize: 1
                   Directory:
-                    - title: string value
-                      type: string value
-                      art: string value
-                      content: true
-                      filter: string value
-                      hasPrefs: true
-                      hasStoreServices: true
-                      hubKey: string value
-                      identifier: string value
-                      key: string value
-                      lastAccessedAt: 1
-                      Pivot:
-                        - title: string value
-                          type: string value
-                          context: string value
-                          id: string value
-                          key: string value
-                          symbol: string value
-                      share: 1
-                      thumb: string value
-                      titleBar: string value
+                    - key: '10'
+                      type: photo
+                      title: Photos
+                      language: en
+                      uuid: 00000000-0000-0000-0000-000000000010
+                      Location:
+                        - id: 34
+                          path: /fixture/photos
         '400':
           $ref: "#/components/responses/400"
           description: Bad Request - Invalid parameters or malformed request
@@ -24263,7 +24257,9 @@ paths:
       summary: Get Metadata Children
       tags:
         - Library
-      description: Get children of a show, season, artist, or album.
+      description: |-
+        Get children of a show, season, artist, or album, including a photo album.
+        Photo album children can include both photos and video clips; omit media-type filters to retrieve all members.
       security:
         - token:
             - admin
@@ -24279,6 +24275,13 @@ paths:
         - $ref: "#/components/parameters/X-Plex-Device-Vendor"
         - $ref: "#/components/parameters/X-Plex-Device-Name"
         - $ref: "#/components/parameters/X-Plex-Marketplace"
+        - $ref: "#/components/parameters/X-Plex-Container-Start"
+        - $ref: "#/components/parameters/X-Plex-Container-Size"
+        - name: includeMeta
+          description: Include the Meta object in the response.
+          in: query
+          schema:
+            $ref: "#/components/schemas/BoolInt"
         - name: id
           description: The unique identifier of the item
           in: path
@@ -38284,6 +38287,70 @@ paths:
             text/html:
               schema:
                 type: string
+  /library/sections/{sectionId}/folder:
+    get:
+      operationId: getSectionFolder
+      summary: Get library folder contents
+      tags:
+        - Library
+      description: |-
+        Browse the physical folders and direct media items in a library section.
+        Omit parent to retrieve the root page. For a child folder, use the parent query value from the folder key returned by Plex.
+        A folder token is distinct from a metadata rating key; do not substitute an album rating key.
+        Photo libraries can return navigation directories, photos, and video clips in the same response.
+      security:
+        - token:
+            - admin
+      parameters:
+        - $ref: "#/components/parameters/accepts"
+        - $ref: "#/components/parameters/X-Plex-Container-Start"
+        - $ref: "#/components/parameters/X-Plex-Container-Size"
+        - name: sectionId
+          description: The unique identifier of the library section.
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: parent
+          description: Folder token from the parent query parameter of a returned folder key, not a metadata rating key.
+          in: query
+          schema:
+            type: string
+          example: '3706'
+        - name: includeMeta
+          description: Include the Meta object in the response.
+          in: query
+          schema:
+            $ref: "#/components/schemas/BoolInt"
+      responses:
+        '200':
+          description: Direct child folders and media items.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MediaContainerWithMetadata"
+              example:
+                MediaContainer:
+                  offset: 0
+                  size: 2
+                  totalSize: 2
+                  Metadata:
+                    - key: /library/sections/10/folder?parent=3706
+                      title: Folder A
+                    - ratingKey: '98901'
+                      type: photo
+                      key: /library/metadata/98901
+                      title: root.jpg
+                      Media:
+                        - id: 123209
+                          Part:
+                            - id: 123209
+                              file: /fixture/photos/root.jpg
+                              key: /library/parts/123209/file.JPG
+        '400':
+          $ref: "#/components/responses/400"
+        '401':
+          $ref: "#/components/responses/401"
   /library/sections/{sectionId}/hubs:
     get:
       operationId: getLibrarySectionHubs
@@ -57728,6 +57795,7 @@ components:
                 type: integer
               path:
                 description: The path of where this directory exists on disk
+                type: string
         refreshing:
           description: Indicates whether this library section is currently scanning
           type: boolean
@@ -58338,7 +58406,9 @@ components:
                   items:
                     $ref: "#/components/schemas/MediaGrabOperation"
     MediaContainerWithMetadata:
-      description: A MediaContainer that includes metadata items. When `includeCollections=1` is passed to endpoints such as `/library/sections/{sectionId}/all`, this container may also include `Collection` items.
+      description: |-
+        A MediaContainer that includes metadata items. Photo library responses can also expose items under Directory, Photo, or Video; these optional arrays retain the same item metadata and Media/Part file information.
+        When includeCollections=1 is passed to endpoints such as /library/sections/{sectionId}/all, this container may also include Collection items.
       type: object
       example:
         MediaContainer:
@@ -58352,6 +58422,21 @@ components:
             - type: object
               properties:
                 Metadata:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/Metadata"
+                Directory:
+                  description: Navigation folders or metadata items returned under the Directory element.
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/Metadata"
+                Photo:
+                  description: Photo items returned under the Photo element.
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/Metadata"
+                Video:
+                  description: Video items, including photo-library clips, returned under the Video element.
                   type: array
                   items:
                     $ref: "#/components/schemas/Metadata"
@@ -59953,6 +60038,11 @@ components:
           description: For shows and seasons, contains the number of total episodes.
           type: integer
           format: int32
+        librarySectionID:
+          description: The library section containing this metadata item, when reported by the server.
+          type: integer
+          format: int64
+          example: 3
         Media:
           type: array
           items:
@@ -59962,9 +60052,11 @@ components:
           type: integer
           example: 1
         originallyAvailableAt:
-          description: When present, in the format YYYY-MM-DD [HH:MM:SS] (the hours/minutes/seconds part is not always present). The air date, or a higher resolution release date for an item, depending on type. For example, episodes usually have air date like 1979-08-10 (we don't use epoch seconds because media existed prior to 1970). In some cases, recorded over-the-air content has higher resolution air date which includes a time component. Albums and movies may have day-resolution release dates as well.
+          description: |-
+            The original release or capture date as reported by the server.
+            Values can be a date (YYYY-MM-DD), a date with a time (YYYY-MM-DD HH:MM:SS), or an ISO 8601 timestamp.
+            Preserve the string representation so higher-resolution timestamps are not reduced to a date-only value.
           type: string
-          format: date
           example: "2022-12-14T00:00:00.000Z"
         originalTitle:
           description: When present, used to indicate an item's original title, e.g. a movie's foreign title.
@@ -60127,10 +60219,8 @@ components:
           type: integer
           format: int32
       required:
-        - addedAt
         - key
         - title
-        - type
       x-speakeasy-unknown-fields: true
     NotificationContainer:
       type: object
