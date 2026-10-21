@@ -264,94 +264,98 @@ paths:
           content:
             application/json:
               schema:
-                allOf:
-                  - $ref: "#/components/schemas/ServerConfiguration"
-                  - type: object
-                    properties:
-                      Directory:
-                        type: array
-                        items:
-                          $ref: "#/components/schemas/Directory"
+                type: object
+                properties:
+                  MediaContainer:
+                    allOf:
+                      - $ref: "#/components/schemas/ServerConfiguration"
+                      - type: object
+                        properties:
+                          Directory:
+                            type: array
+                            items:
+                              $ref: "#/components/schemas/Directory"
               example:
-                identifier: example
-                offset: 1
-                size: 1
-                totalSize: 1
-                allowCameraUpload: true
-                allowChannelAccess: true
-                allowMediaDeletion: true
-                allowSharing: true
-                allowSync: true
-                allowTuners: true
-                backgroundProcessing: true
-                certificate: true
-                companionProxy: true
-                countryCode: example
-                diagnostics:
-                  - example
-                eventStream: true
-                friendlyName: example
-                hubSearch: true
-                itemClusters: true
-                livetv: 7
-                machineIdentifier: 0123456789abcdef0123456789abcdef012345678
-                mediaProviders: true
-                multiuser: true
-                musicAnalysis: 2
-                myPlex: true
-                myPlexMappingState: mapped
-                myPlexSigninState: ok
-                myPlexSubscription: true
-                myPlexUsername: example
-                offlineTranscode: 1
-                ownerFeatures:
-                  - example
-                platform: example
-                platformVersion: example
-                pluginHost: true
-                pushNotifications: true
-                readOnlyLibraries: true
-                streamingBrainABRVersion: 1
-                streamingBrainVersion: 1
-                sync: true
-                transcoderActiveVideoSessions: 1
-                transcoderAudio: true
-                transcoderLyrics: true
-                transcoderPhoto: true
-                transcoderSubtitles: true
-                transcoderVideo: true
-                transcoderVideoBitrates:
-                  - example
-                transcoderVideoQualities:
-                  - example
-                transcoderVideoResolutions:
-                  - example
-                updatedAt: 1
-                updater: true
-                version: example
-                voiceSearch: true
-                Directory:
-                  - title: string value
-                    type: string value
-                    art: string value
-                    content: true
-                    filter: string value
-                    hasPrefs: true
-                    hasStoreServices: true
-                    hubKey: string value
-                    identifier: string value
-                    key: string value
-                    lastAccessedAt: 1
-                    Pivot:
-                      - title: string value
-                        type: string value
-                        context: string value
-                        id: string value
-                        key: string value
-                        symbol: string value
-                    share: 1
-                    thumb: string value
-                    titleBar: string value
+                MediaContainer:
+                  identifier: example
+                  offset: 1
+                  size: 1
+                  totalSize: 1
+                  allowCameraUpload: true
+                  allowChannelAccess: true
+                  allowMediaDeletion: true
+                  allowSharing: true
+                  allowSync: true
+                  allowTuners: true
+                  backgroundProcessing: true
+                  certificate: true
+                  companionProxy: true
+                  countryCode: example
+                  diagnostics:
+                    - example
+                  eventStream: true
+                  friendlyName: example
+                  hubSearch: true
+                  itemClusters: true
+                  livetv: 7
+                  machineIdentifier: 0123456789abcdef0123456789abcdef012345678
+                  mediaProviders: true
+                  multiuser: true
+                  musicAnalysis: 2
+                  myPlex: true
+                  myPlexMappingState: mapped
+                  myPlexSigninState: ok
+                  myPlexSubscription: true
+                  myPlexUsername: example
+                  offlineTranscode: 1
+                  ownerFeatures:
+                    - example
+                  platform: example
+                  platformVersion: example
+                  pluginHost: true
+                  pushNotifications: true
+                  readOnlyLibraries: true
+                  streamingBrainABRVersion: 1
+                  streamingBrainVersion: 1
+                  sync: true
+                  transcoderActiveVideoSessions: 1
+                  transcoderAudio: true
+                  transcoderLyrics: true
+                  transcoderPhoto: true
+                  transcoderSubtitles: true
+                  transcoderVideo: true
+                  transcoderVideoBitrates:
+                    - example
+                  transcoderVideoQualities:
+                    - example
+                  transcoderVideoResolutions:
+                    - example
+                  updatedAt: 1
+                  updater: true
+                  version: example
+                  voiceSearch: true
+                  Directory:
+                    - title: string value
+                      type: string value
+                      art: string value
+                      content: true
+                      filter: string value
+                      hasPrefs: true
+                      hasStoreServices: true
+                      hubKey: string value
+                      identifier: string value
+                      key: string value
+                      lastAccessedAt: 1
+                      Pivot:
+                        - title: string value
+                          type: string value
+                          context: string value
+                          id: string value
+                          key: string value
+                          symbol: string value
+                      share: 1
+                      thumb: string value
+                      titleBar: string value
         '400':
           $ref: "#/components/responses/400"
           description: Bad Request - Invalid parameters or malformed request
