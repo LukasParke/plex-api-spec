@@ -71,6 +71,7 @@ jobs:
           # Pinned to the CLI version that generated the spec. The install
           # script verifies release checksums itself.
           SPEAKEASY_VERSION: "1.790.2"
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           curl -fsSL "https://raw.githubusercontent.com/speakeasy-api/speakeasy/v${SPEAKEASY_VERSION}/install.sh" | VERSION="${SPEAKEASY_VERSION}" sh
           speakeasy --version
@@ -79,6 +80,7 @@ jobs:
         run: speakeasy lint openapi -s plex-api-spec.yaml
 
       - name: Install Vacuum (pinned + checksum verified)
+        id: install-vacuum
         env:
           VACUUM_VERSION: "0.29.10"
         run: |
@@ -100,11 +102,11 @@ jobs:
             --min-score 25
 
       - name: Generate Vacuum report
-        if: always()
+        if: always() && steps.install-vacuum.outcome == 'success'
         run: vacuum report plex-api-spec.yaml report-prefix --no-pretty
 
       - name: Upload Vacuum report
-        if: always()
+        if: always() && steps.install-vacuum.outcome == 'success'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: vacuum-report
